@@ -1,0 +1,91 @@
+DSPF basics:
+*Date to enter
+?front of variable to change the name
++3,+6(3) ,+9(3) for i ,o , io numbers
++i , +o ,+b for i,o, io characs
+
+
+
+
+Subfile:
+Load all subfile:
+Pageup, pagedown is handled by system
+9999 records can be loaded, all the records will be loaded first itself
+SFLPag(no of records in page) should be atleast one less than SFLSIZ(total no of records)
+SFLDSP,SFLDSPCTL, SFLEND(should be used for same indicator-50), SFLCLR(N50)
+Two records(SFLCTL- control portion(static), SFL- SFLdata( it holds records))
+We need to initialize--SFLILE(SFLDATA:RRN#), RRN# is variable of 4s 0 to handle the enter keyword
+Clear subfile(switch on SFLCLR indicator),write sflctl
+Load subfile(write the subfile- Write SFLDATA
+Display (EXFMT- SFLCTL)
+CF03 , CA03 needs to handled at SFLCTL
+
+SFLRCDNBR(CURSOR) we declare in DDS with (RCDNbR)this will give cursor position.
+We can use this RCDNBR along INFDS( file datastructure and take the min-rcd) and assign it to RCDNBR to keep the screen as its when enter is pressed.
+
+Record level indicator-SFLNXTCHG in SFLDATA(SFL), We have to switch on this indicator update the SFLDTATA next time if we issue READC it will read all the changed records instead of latest ones
+
+CAnn--we can cA01,ca03 indicator to exit or come to previous screen if we use CA  contents from DSPF will not be taken inside the program
+CFnn-- We can cf08,CF10 to update ,validate if we use CF contents from DSPF will be taken inside the program.
+EDTCDE- Is used to seperate commas, insert / in dates also to EDTCDE(4) to display empty subfile numeric field without zeros.
+SFLINZ- Is used to display empty sfile,
+SFLDSP,SFLDSPCTL,sflend(*MORE) should switched on, SFLCLR should be swited Off -- LOAD
+SFLINZ, or write sfldata in write
+===================================================================================================================================
+Single page subfile:
+only one page is loaded at a time, page up , page down should be handled in program by giving indicators for page up, page down
+SFLSIZ and SFLPAGE should be same(10)== 10 records at a time from file
+
+EXFMT-sflctl to display
+
+first display
+use rrn increment it by 1 ,when it is equal to subfile size , use a readp to go previous record as read statement would have happened to next record,we need to display sf
+Pagedown:
+Read the next record, inrement the RRN till subfile size
+Pageup:
+we have to use readp for sfl size times to bring the cursor back to 10 records and read and write
+===================================================================================================================================
+Expandable/growing subfile
+SFLSIZE should be greateer than sflpage
+pageup is handled by system itself as the buffer is keep on increasing
+only pagedown should be hanldled
+
+********************
+SFLSIZ, SFLPAG
+SFLSIZ total number of records in overal
+SFLPAG number of records in single screen
+Load all subfile( SFLPAG < SFLSIZ)
+Single page subfile(SFLPAG < SFLSIZ)
+Expandable subfile(SFLPAG = SFLSIZ)
+
+************
+1) Readc and SFLNXTCHG
+Readc is used to read changed records 
+SFLNXTCHG we can use and turn on to read the changed record twice
+Validate:
+Sflnxtchg = *ON
+READC
+
+
+
+2) EXFMT:
+Combination of WRITE and READ
+
+3)SFLCLR and SLFINZ
+SLFCLR , clears the subfile
+SFLINZ , clears the subfile and initialize subfile fields to its defautl
+
+4) Session or device error:
+If there are more than 9999 records if we are trying to load in load all subfile
+
+if we try to load empty subfile --- i.e., without writing the data subfile.	
+
+if we try to load subfile with incorrect SFLRCDNBR (SFLRCDNBR variable = 0).
+
+5) what is the use of sFLNXTCHg
+If there are three records 2 records in subfile changed , if in validation second record needs changes if user changes second record only the second record will be read first record will not be read for this we have to use slfnxtchg indicator, if turn sflnxtchg indicator and update the subfile data position and issue readc same record will be read again.
+ Readc;
+ *IN80 = *on;
+  Update sfldata;
+
+-- Wen we issue readc again same record will read , if we dont use slfnxtchg indicator it wont be read

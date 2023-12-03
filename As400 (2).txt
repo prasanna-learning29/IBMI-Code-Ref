@@ -1,0 +1,490 @@
+
+06/24/2020
+PF--
+How to add members to PF=> ADDPFM
+how to query other members of PF using SQL=> Using CREATE ALIAS//Runqry () file/member
+Overlay=> used to combine the screens in Dsply files so that screens can be displayed with single Read 
+CHGPF-->change fields/add fields witout changing the data, It can be used for adding field in the bottom, cannot be used if a field size increased or new field is added inbetween
+K-Field_unique
+
+Join LF=> Join two files based on common fields
+LF doesnt occupy any memory
+Maximum number of record format in PF-1, join LF-1 , non-join LF-32
+Rename=> TO rename the rcdformt,file
+Prefix=> to add charcs to file field
+USROPN=>if usropn is defined we have to handle open and close of the fiels
+-------------------------------------------------------------------------------------------------------------------------------------------------
+RPG-
+Eval(H) is used to round off variables , it always rounds up , if the variable has decimal position it rounds upto decimal position
+Flag is defined as type "N"
+------------------------------------------------------------------------------------------------------------------------------------------------
+Array, Data structures & Data areas:
+CMP Array== Values are assigned durning the compilation of the PGM(CTDATA),should have Perrcd()
+Pre-cmp time array== values are stored in flat file so it can be changed without changing the program, we should declare array with fromfile(filename) instead of CTDATA, Flat file should be declared in F spec with 'T' type.
+We should give FROMFILE(Flat file name)
+
+0002.00 DPRE_ARR          S              5    DIM(5) FROMFILE(FLAT01) PERRCD(1)  
+
+RUN time Array== Values are assigned during the run time of te PGM( DIM(value)
+
+Lookup func returns the index of the variable(place in which searching element is found) Returns zero if the matching element is not found.
+Dledgers	S	26 0 DIM(9999)
+%Lookup(variable:Ledgers)
+SOrta- sorts the elements in ascending order
+sorta %subarr(ledgers:1:25);
+sorting array datastructure
+Dcl-ds family qualified dim(10);
+	name varcha
+XFOOT -gives the sum of the array elements
+
+Data area:
+DTAARA should be declared as data structure, IN Dtaara to read the dtaara. Change value and issue OUT Dtaara to write into dtara using RPG
+D LDA           E DS                  ExtName(LDA) Dtaara(*LDA)
+It can be defined as DS or using define keyword in C spec
+------------------------------------------------------------------------------------------------------------------------------------------------
+Overlay == Copy records from DS or array or field
+DTDS              DS                                        
+DFD1                             5A   INZ('DADSA')          
+DFD2                             5A   INZ('DDASA')          
+DFD3                             5A   DIM(2) OVERLAY(TDS)   
+Externallydescribed ds== We can use file as datastructure by using EXTNAME(Filename) and use the fields from file in the program.
+Multipleoccurence DS== we can use ds with occurs(10), this means DS can have values, %occur(DS)=1, we can access or update first occurence
+What is the requirment to use occurs, it was used in previous rpg version when array ds was not there
+PSDS(program status)=== System defined dta structure we can get jobname, msgid(checked for exeption),jobnbr,user,status of the program from this.
+INFDS== file details data sturcure provided by system to know open/close status, RRN
+INDICATORDS== IF we want to give rename indicators used in our program to give meaningful names we can use this,INDARA should be specified in DDS of DSPF, we should have pointer variable based on address(*IN) and create a ds based on pointer variable
+D IndPtr          S               *   Inz(%Addr(*IN))    
+D IndGen          DS                  Based(IndPtr)      
+
+D @SFCLR                 26     26                       
+D @SFDspCTL              28     28                       
+D @SFDsp                 29     29                       
+                     
+Qualified DS== IF we issue qualified in DS definition, subfields can be used only by referrring DS(Ex:DS1.Name,DS1.City)
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Error Handling
+*PSSR, whenever there is error program automatically calls PSSR SR.	
+*Monitor
+*Extender indicator:CALLP(E), if Error();
+
+READ,READP,CHAIN,SETLL,SETGT
+
+Setll== the cursor at KEy value, Loval, Hival
+ReadE== Reads the record which is equivalent to key specified, if the equal record is found, it will not read any other records in the file
+Chain= Combination of SETLL and READE
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+SQLRPGLE:
+cursor- Declare,open,fetch. Fetch is take the records to varialbe,DS
+SQLCode is program variable, returns 0 when the query is success, 100 when eod file is reached , - value on error
+Exec SQL
+ Set commit options = *none
+** DECLARE C cursor for -- Sql statement
+	for fetch only
+** Open C
+	Dow SQLCode = 0;
+** Fetch Next from C into :DS
+	End do
+	Close C
+	
+	-- Use of Fetch only in read only cursor	
+			Improves the perfomance of fetch operation
+			No exclusive locks
+			Prevents deadlocks
+------	
+Execute Immediate :SQL,, (SQL statement can be, insert delete update we cannot dynamically pass values into where condition, we have to pass the variable in where condition SQL, statement)
+
+-------
+Prepare&execute , we can pass values dynamically to Where condition, we can provide runtime values in where condition
+Prepare S from :SQLSTatement
+Executre S using :Inputvariable
+----------
+https://www.mainframestechhelp.com/tutorials/db2/declare-cursor.htm
+Update using cursor
+we have to provide for update of fieldnames during the declare cursor and use update statement with Where current of cursor
+Declare the cursor c (statement) for update
+open cursor
+fetch next from c into :fd
+
+Declare C cursor for 
+	select * from Table where Field = 'A'
+		for update of Field2
+Fetch next from C into :Variable
+update file set filed=value where current of c
+
+Can be used for delete as
+Delete from file where current of c
+
+Scrollable cursor	
+Declare C Scroll cursor for
+	select * from table for fetch only
+	
+Fetch Scroll-option from C into :ds
+--Scroll- options : Next, First, Last, prior, before(places cursor before first row),after(places cursor after last row),current, Relative +5 , Relative +var ,n-var
+
+Sensitive cursor,
+Detects the realtime updates of the file after the cursor is opened
+----------------------------------------------------------------------------------------------------------------------------------------
+Subfiles&DSPF:
+DSPF- Give f10 to include field variables in SF or DSFP
+DSPF: We can use three records header footer and use overlay both in header footer , then we can write detail, write footer,header and read Detail to show all three records combined in DSPF.
+CAnn--we can cA01,ca03 indicator to exit or come to previous screen if we use CA  contents from DSPF will not be taken inside the program
+CFnn-- We can cf08,CF10 to update ,validate if we use CF contents from DSPF will be taken inside the program.
+EDTCDE- Is used to seperate commas, insert / in dates also to EDTCDE(4) to display empty subfile numeric field without zeros.
+Load all subfile
+	*Page up,page down is automatically controlled,need to give page size,record size, dsp indic,ctl idica(both same) and clear off the dsp indicator. Need to give INFDS to take rrn,record ,cursor.
+READC -- Used to read the changed records in subfile
+SFLNXTCHG-- Need to add the indicator to data position with indicator,If we set the indicator on to tat record it will help to read that during next ReaDC, If we change three records in SF and one record later changed for validation if you use readc only third record will be read.
+SFLINZ- to initalize sf records to its defauld value
+SFLFOLD,SFLDROP-- If a subfile record has two lines, if we want default to show only first line records SFLDROP, To show both lines SFLFOLD
+Diplaying empty subfile- need to have seperate indicator of SFLDSP of DATA and cTL and switch on data indicator only wen RRN > 0
+
+Single page sub-file: PAge up , page down need to be handled, only single page records should be loaded into SFL data.
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+SQL:
+View---acts like lf , value changes dynamically
+Functions-- can be used to call a program,subprocedure in SQL
+
+B240223600
+Self join
+Union-- Will apend the data from file1 and file2 in to single output,keeps only record if a record presents in both the file. Both files columns should be same for this to work
+Exists
+
+Select * from A
+except distinct
+Select * from b
+			== Lists the data from file a that are not in File B240223600
+
+How to check if the field is null or not.
+	select * from file a where field is null or fild is not null
+
+What is difference between left outer join and right outer join
+Left outer join selects only the records from File a and omits matching records from file b/w
+Right outer join selects only the records from file b and omits matching records from file access
+
+What is the difference between outer join and inner join
+in inner join only the matching records from file a and file b are fetched. remaining records are omitted
+in outer join all records are fetched, if the record from file a is not present in file b , file b columns are fileed with null
+
+How to identify duplicate records in file and delete only the duplicate entries via sql?
+--Select * , count(*) from file group by * having count(*) > 1
+-- Create qtemp/a (select distinct from above query)
+--delete from file where exists(Select * , count(*) from file group by * having count(*) > 1)
+-- insert into file (select * from qtemp/a)
+
+What is the difference drop and delete table
+Drop will permanently delete the file from database
+delete can be used to delete specific records using where clause or all records from file.
+-----------------------------------------------------------------------------------------------------------------------------------------
+JOBS, JOBQ, JOBD,SBSM
+Interactive jobs will run under QINTER subsystem
+JOBD- User profile,PGM log,Library list,Jobq parameters
+JOBQ can hold specified number of jobs to run in a subystem
+MSGW- Getin will execute the RPG from the start
+------------------------------------------------------------------------------------------------------------------------------------------
+Data Queues
+--QSNDDTAQ to send the data to external programs
+--QRCVDTAQ to receive the data , wait time -1 to keep the running 
+--Keyed data also
+------------------------------------------------------------------------------------------------------------------------------------------
+LDA(LOCAL Data area)
+LDA is data area specific to job instance
+ it can hold data that can be used in subsequent programs.
+RTVDTAARA is cl command
+-------------------------------------------------------------------------------------------------------------------------------------------
+STRSRVJOB- Debug the job-- SERVICE PROGRAM DEBUG
+Hold JOBQ 
+SBM job that jobq
+STRSRVJOB
+STRDBG of the program
+RLSJOBQ
+Rls the job, give f10 to view the source(Dspmodsrc) and give break point and come out
+now give enter to debug the job.
+ENDDBG
+ENDSRVJOB
+
+Job in MSGW:
+STRSRVJOB JOB(719883/DEVPRA/TESTJOB)
+STRDBG PGM(DEVPRA/TESTPGM) UPDPROD(*YES) OPMSRC(*YES)	set a breakpoint before te error statement
+goto wractjob give 'G', PGM will execute from start till breakpoint change the value and pass the lines and give F12
+ENDDBG   
+ENDSRVJOB
+------------------------------------------------------------------------------------------------------------------------------------------------
+PRINTER Files
+Geneartes sppool files which can be used to send a mail or print in user place
+Overflow keyword to repeart the header
+Refer STUDPRTF Prgm
+Offline indicator(OFLIND) to indicate the page is complete so we can repeat the header
+-----------------------------------------------------------------------------------------------------------------------------------------------
+Level Check Error
+When a program uses a file it will store format level identifier of that PF object, when a File is compiled this will change and pgm will throw
+Level check error when called.
+If we give LVLCHKERR(*NO) while compiling a new PF object, it will not throw the error , if a existing field lenght value changed it  wont be included in RPG
+------------------------------------------------------------------------------------------------------------------------------------------------
+OVRDBF
+--LIbrary list control , -- Member selection -- Change openmode (Input to output) on the go
+OVRDBF Used to refer other file when this file is being used in the program
+OVRDBF used to read the file from a specific RRN value and by giving KEYAE we can use it keyed file
+OVRDBF used to refer Member if it has many members
+-------------------------------------------------------------------------------------------------------------------------------------------------OPNQRYF
+OPNQRYF
+
+Data Retrieval: OPNQRYF allows you to select records from one or more database files based on specified selection criteria. 
+ You can filter data using various conditions and logical operators.used to read only specific records by giving condition and key fields
+ Sorting the records, joining files 
+For this we have issue OVRDBF share*yes to avoid two times read error
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Calling CL commands in RPG or RPGLE
+
+We can use by System command from QC2le Binding directory or QCMDEX. it should be declared as procedure EXTproc(System), Extpgm(QCMDEX).
+System is api of c pgm from QCL2 binding dierectory
+System has one parameter, string(command). QCMDEX has two parameters command and lenght of command.
+If the CL command fails system will not throw any error, QCMDEX will end in MSGW
+Variable can be declared in PR of system to get the failure code
+CALLP(E) will handle the error and show the error code it will not stop pgm in MSGW
+delcare qcmdexc as prototype with extpgm('QCMDEXC') two parameters , command and commandlen
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ILE Concepts(SUB Procedures,Modules,binding directory, Service programs).
+Subprocedure-- To return result from SUBP, we need define the spec in its PI of Subp, export should be given for other program to use it.
+Use of subprocedures should have dftactgrp(*NO) in h spec , else give 15 to create a module and crtpgm command to create pgm from modue
+If a subprocdure is within the program need to PR variable declaration, PI varaible declaration coding.
+To use CL commands in Free format- Declare Subprocdure with extpgm(QCMDEXC) and parms(cmd, cmd len)
+Program can be created referring two or more modules and all of the SUbprocedures pesent in 3 modules can be used in program
+Many modules can binded to create a SRVPROGRAm, new pgm can bind to a SRVprogram and all the sp can be used, CRTSRVPGM and give the modules
+programs can have copy books(which has pR sections) and bind dir to have srvprgms so pgm can directly use the SB from any of te modules. without declaring
+
+Call by value(Value):If we declare the procedure pass by value(we have to give value keyword in both PR and PI if change the value of input parametr it wont change), input parameter into SUBPROC will not change
+Call by address: the passing parameters will denote to address of the pgm variable  if a value in para is subp is changed it will change.
+options(*NOPASS): if a subp has 4 parms to call subp with only 3 params 4th param should be defined as *NOPASS. this will for 4th param only not inbetween
+Options(*Omit): Omit can be given to keep the inbetween params optional, but should be declared in between *omit while calling
+Nopass can be used last 2 , 3 parameters, we dont need to pass parameter when calling the procedure, we can use %parms to find the parameter passed
+*omit can be used for inbetween 2 and or 3rd parameter, if we use *omit , we need to specify *omit in calling procedure, we can use %addr of parameter to check
+
+Const Keyword- if we give Const PR,PI it wont allow to change the input paramters in Sub-procedure
+
+SRVPGM- GIving Export *all while compiling srvpgm, if a srvpgm is changed all the programs which uses service pgm needs to changed.
+
+Binder Language--Exporting SUbproce from Services can be handled using this
+
+Passing datastructure to ILE- We can Use Likeds keyword in PR and PI to pass datastructure
+Passing Arrar to Ile- We can use Array in PR and PI
+Passing array datastructure in ILE
+We can use EXTPGM and define the parms in Prototype for calling RPG pgms from ILE pgm
+*Entry-How parms are passed from other pgms to ILE pGM-- We have to create Prototype with EXTPGM of same program, and procedure interface to receive the values
+DMain             PR                  EXTPGM('PARRDSILE')     
+DADS1                                 Likeds(ADS1)  Dim(5)    
+ *                                                            
+DMain             PI                                          
+DADS2                                 LIKEDS(ADS1)  DIM(5)     
+
+----Signature Violation error in ILE
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Activation group:
+If a program is to be called number of times inside a if it has same activation group it will run faster,ACTGRP(*CALLER)
+If the program being called has ACTGRP(*NEW) it will run longer time as its creates actgrp separeatally for each call
+-------------------------------------------------------------------------------------------------------------------------------------------------
+FTP&SFTP:
+PWD to ceck the current directry CD to change it, LCD to check pc folder LCD C\(directory) to change it.
+
+FTP 2nd qa or 
+LCD DEVPRA or /qsys.lib/devra.lib
+cD same
+Locsite namefmt 1 ==denote files from ifs
+Lostite namefmt 0 ==
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Trigger:
+Trigger can be used to record before or after insert,delete,update. Calls a CL with buffer and lengt, buffer is passed to RPGLE. buffer can be given in pred-defined trigger datastructure.Buffer parm from cl should be defined as datastructure
+
+SQL Triggers can be called when insert/update/delete , can be used for LF/PF
+CL PGM can be used in ADDpftrg when insert/update/delete/read, can be used for LF only
+-------------------------------------------------------------------------------------------------------------------------------------------------
+COmmit&RollbacK:
+If we give the file defined with commit after writing data into pf, if we give commit it will load the data permantely or it will erase it, rollback will rollback the changes. for thsi file should be journaled.
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Fully Free RPG:
+
+"DCL-F" to declare the file. "DCL-F Poroot Keyed Usage(*Delete);"
+"DCL-S" to declare standalone variables "DCL-S Date TimeStamp"
+-------------------------------------------------------------------------------------------------------------------------------------------------
+CPYF
+*MAP--- to map the same format from file to TO file are copied,if the fields are not present in from fil, TOFILE is set to defaults
+*DROP--- This must be specified if any of the fields from FROMFILE is not present in TOFILE
+*NOCHK-- it doesnt check for same format, just copies data from left to right
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Diff b/w CPYF and CRTDUPOBJ
+CPYF- creates PF if LF is copied also, PF is copied also .i.e. if the from file is either LF or PF , PF will be created
+CRTDUPOBJ- Cretes PF is its PF, creates LF is the from file is LF.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Journaling
+Journal Receiver(CRTRCVJRN), journal object(CRTJRN), JRNRCV is used to commit and rollback
+
+DSPJRN JRN(JOURNAL030/MCSJRN) FILE((RETFL030/TFRLDID)) INCHIDENT(*YES) OU 
+TPUT(*OUTFILE) OUTFILE(QTEMP/JRN3) ENTDTALEN(*CALC)                       
+
+2) WRKQRY_DEVPKAN/JRNQRY- File format
+
+CPYF FROMFILE(QTEMP/JRN3) TOFILE(DEVPKAN/JRNTFR1212) MBROPT(*REPLACE) FMT
+OPT(*NOCHK) ERRLVL(*NOMAX)                                              
+
+
+drop table, truncate
+
+-----
+data tranfer between systems
+CRTsavf, savobj, sendnetf in from system
+crtsavf, rcvnetf, rstobj in to system 
+
+CRTSAVF FILE(QTEMP/SAV001)                                             
+SAVOBJ OBJ(TOTAL SMART DCPS SPP) LIB(QTEMP) DEV(*SAVF) SAVF(QTEMP/SAV001)
+SNDNETF FILE(QTEMP/SAV001) TOUSRID((USER405 SYSTEM405))   
+
+WRKNETF
+CRTSAVF FILE(QTEMP/SAV001)  
+RSTOBJ OBJ(*ALL) SAVLIB(QTEMP) DEV(*SAVF) SAVF(QTEMP/SAV001) RSTLIB(AMI001)
+
+
+**********
+Difference between RPG 3 and RPG 4
+
+RPG 3
+Limited column space
+No d spec
+only Move operaton no Eval
+
+RPG4
+D spec
+C spec free format
+EVal available
+Large variable names
+
+****
+D Char            S             10A          ------ Character datatype                          
+D Num2            S             10S 0        ------ Number zoned
+D date            S               D           ---------date                       
+D time            S               T            ----------time                       
+D timestamp       S               Z             ----------timestamp                      
+D flat            S               N               --------- indicator                    
+D PI              C                   31.4         -------constant                  
+
+***
+Converting character to decimal
+
+Num_date2 = %dec( char_date : 8 : 0); 
+
+Converting date to char;
+ Char_date = %char( date : *iso0);
+
+converting decimal to date
+ date =  %date ( Num_date : *iso ); 
+
+***********
+Conditional statements
+1) IF - ELSE
+   Endif
+2) For
+3) DOW
+   Endo
+4) select
+ 	when
+        other
+   Endsl
+*************
+List of BIF:
+	
+**************
+The built-in functions are:
+%ABS (Absolute Value of Expression)
+%ADDR (Get Address of Variable)
+%ALLOC (Allocate Storage)
+%BITAND (Bitwise AND Operation)
+%BITNOT (Invert Bits)
+%BITOR (Bitwise OR Operation)
+%BITXOR (Bitwise Exclusive-OR Operation)
+%CHAR (Convert to Character Data)
+%CHECK (Check Characters)
+%CHECKR (Check Reverse)
+%DATA (document {:options})
+%DATE (Convert to Date)
+%DAYS (Number of Days)
+%DEC (Convert to Packed Decimal Format)
+%DECH (Convert to Packed Decimal Format with Half Adjust)
+%DECPOS (Get Number of Decimal Positions)
+%DIFF (Difference Between Two Date, Time, or Timestamp Values)
+%DIV (Return Integer Portion of Quotient)
+%EDITC (Edit Value Using an Editcode)
+%EDITFLT (Convert to Float External Representation)
+%EDITW (Edit Value Using an Editword)
+%ELEM (Get Number of Elements)
+%EOF (Return End or Beginning of File Condition)
+%EQUAL (Return Exact Match Condition)
+%ERROR (Return Error Condition)
+%FIELDS
+%FLOAT (Convert to Floating Format)
+%FOUND (Return Found Condition)
+%GRAPH (Convert to Graphic Value)
+%HANDLER (handlingProcedure : communicationArea )
+%HOURS (Number of Hours)
+%INT (Convert to Integer Format)
+%INTH (Convert to Integer Format with Half Adjust)
+%KDS (Search Arguments in Data Structure)
+%LEN (Get or Set Length)
+%LOOKUPxx (Look Up an Array Element)
+%LOWER (Convert to Lower Case)
+%MAX (Maximum Value)
+%MAXARR (Maximum Element in an Array)
+%MIN (Minimum Value)
+%MINUTES (Number of Minutes)
+%MINARR (Minimum Element in an Array)
+%MONTHS (Number of Months)
+%MSECONDS (Number of Microseconds)
+%MSG (message-id : message-file { : replacement-text } )
+%NULLIND (Query or Set Null Indicator)
+%OCCUR (Set/Get Occurrence of a Data Structure)
+%OPEN (Return File Open Condition)
+%PADDR (Get Procedure Address)
+%PARMS (Return Number of Parameters)
+%PARMNUM (Return Parameter Number)
+%PARSER (parser {: options})
+%PROC (Return Name of Current Procedure)
+%REALLOC (Reallocate Storage)
+%REM (Return Integer Remainder)
+%REPLACE (Replace Character String)
+%SCAN (Scan for Characters)
+%SCANR (Scan Reverse for Characters)
+%SCANRPL (Scan and Replace Characters)
+%SECONDS (Number of Seconds)
+%SHTDN (Shut Down)
+%SIZE (Get Size in Bytes)
+%SPLIT (Split String into Substrings)
+%SQRT (Square Root of Expression)
+%STATUS (Return File or Program Status)
+%STR (Get or Store Null-Terminated String)
+%SUBARR (Set/Get Portion of an Array)
+%SUBDT (Extract a Portion of a Date, Time, or Timestamp)
+%SUBST (Get Substring)
+%TARGET (program-or-procedure { : offset } )
+%THIS (Return Class Instance for Native Method)
+%TIME (Convert to Time)
+%TIMESTAMP (Convert to Timestamp)
+%TLOOKUPxx (Look Up a Table Element)
+%TRIM (Trim Characters at Edges)
+%TRIML (Trim Leading Characters)
+%TRIMR (Trim Trailing Characters)
+%UCS2 (Convert to UCS-2 Value)
+%UNS (Convert to Unsigned Format)
+%UNSH (Convert to Unsigned Format with Half Adjust)
+%UPPER (Convert to Upper Case)
+%XFOOT (Sum Array Expression Elements)
+%XLATE (Translate)
+%XML (xmlDocument {:options})
+%YEARS (Number of Years)
+*****************************************************
+Triggers , Commitent control
+Addpftrg to a file , to call program before after , insert delete update read to log any action done of pf.	
+
+***
+https://www.ibm.com/docs/en/i/7.3?topic=languages-ile-concepts

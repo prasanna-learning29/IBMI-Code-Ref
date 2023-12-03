@@ -1,0 +1,999 @@
+1) How to read Flat-file in RPGLE
+We have create Flat file by giving Record lenght if no DDS in crtpf,Recordformat filename, field name all are same.
+We have to rename the record format using Rename keyword,and rename the field name using Prefix keyword and give Setll *start of file to read
+
+2)How to read multimember file Clle,RPGLE
+We can give EXTFILE,EXTMBR(member name) to read from pf in RPGLE, Use OvRDBF in clle to specify which member needs to read
+
+3)Dynamic Select Keyword in LF(DYNSLT)
+while using select and omit for fields, file level keyword, can be used only in LF. Select and omit criteria will be checked when program calls read operation only. We can use if 
+
+4) Difference between %Check and %Scan
+%check = it checks the indivual charcs from left and return the position of non-existing element from left in right side-- It can be used to check the characters present in Number field before converting to numeric ix = %check('0123456789': SRXCTL)
+%Scan= it checks the sting from left with right side argument and returns position of matching string-- %Scan('.CSV':D_INPUT)
+
+5)What is CALLB
+when we use two modules and use crtpgm command, for calling pgm b from pgm a we have to use CALLB
+CRTRPGMOD(PGMA)
+CRTRPGMOD(PGMB)
+CALLB PGMB in PGMA, if PGMA is not an ile pgm
+other call wont work
+
+
+6) Calling a program using CALLP and CALL which is efficient
+
+7)Rollback,commit&Journalling difference are they idependent
+For using commit,rollback file should be journaled, if we use commitment control, file will be updated but changes wont be commited untill the comitt is issued
+if rollback is issued before commit, changes from file will be reversed.
+commitment control
+strcmctl	lcklvl(*CHG) CMTSCOPE(*JOB)
+commit
+rollbk
+ENDCMTCTL
+
+8) how to receive parameter in ILE program ABC?
+Dcl-pr program extpgm('ABC');
+	P1 char(10);
+	p2 Packed(5:0);
+End-pr;
+DCL-PI program *N;
+	p1 char(10);
+	p2 packed(5:0);
+End-PI;
+
+8) What is DTAQ, advantages of DTAQ over other method.
+DTAQ is used to communicate b/w jobs, systems. QSNDDTAQ to send the data with key or without key, QRCVDTAQ to receive the data with or without key. data will  be waiting in dtaq till qrcvdtaq is received
+
+9) what is difference between synchronous and asynchronous communication?
+Synchronous communication - direct real time communication, program waits till the completion of request and wait for response before proceeding to next line
+		example program calls other program or other procedure 
+Asynchronous communication - indirect, places the request and proceeds to next line 
+		example program submits one job in batch , dtaq , message quueu
+
+9)What is the use of SFLNXTCHG,
+SFLNXTCHG is used to read the changed records again and it is used in editable sf, we need to turn on SFLNXTCHG indicator after issuing readc to read the same records. If 3 fields are entered one is failing teh validation checks if the user corrects that one filed if we use READC without sflnxtchg indicator only one field is read, so we use SFLNXTCHG indicator we have turn-on the indicator in validation part so all three records are read in readc command,set ind to on and upd sfldata to read the data again
+
+Readc Sfldata;
+Sflnxtind = *on;
+update sfldata;
+
+after validation passes
+READC
+sflnxtind = *off;
+update sfldata;
+
+10)Difference between Expanding Sub-file and load all subfile
+In load all subfile page up and page down are handled by os/400 and all the records should be loaded to subfile at first , can hold maximum of 9999 records.
+In expanding sub-file, only one page is loaded at a time. when pagedown is pressed next set of records are loaded. can hold maximum of 9999 records. Os/400 will handle page up and second time page downs. SFLSIZ should be 1 greater than SFLPAG
+
+11) What is JOBQ, JOBD
+Jobd has information about which jobq job is submitted, initial library list
+Jobq tells under which subsystem, maximum jobs allowed to run
+
+12) What is activation group, how to declare it for Program and advantages of using *CALLER, *GEN, Named activation group
+Activation group is used to allocate resource for the program, if the program is going to called multiple times inside a job we can use named activation group to reduce the time or *caller if the calling program has named activation group. *new will create a activation group every time and it will lead to increase in program time.*caller will be used if the previous program has used opnqryf , ovrdbf to get those changes.
+
+13) how to use Chain in Free-format
+Chain (key1: Key2) rcdfmt, It will turn on High incdicator if no record found
+
+How to convert RPG to RPGLE program?
+using CVTRPGSRC command
+
+14) Tell about PSDS and uses of it 
+Program system DS it provides error id, username, jobnbr, Parms
+
+15) different types of data-structures and its uses.
+Program system data structure, External file discribed DS to use file fields, Array datastructure, mulitple occurs datastructures
+
+16) which CRTPGM, CRTSRVPGM, CRTBNDRPG(14) has option to change DEfault activation group
+CRTBNDRPG(14)
+
+17) what is the use of Get-in in RPG job handling
+G command runs the program from starting line of the RPGLE program
+
+18) how to call Modules from other service program/bindry in CL program
+DCLPRCOPT to declar, CALLPRC
+or to call module from srvpgm or bnddir
+callprc in CL and create CL as module and crtpgm with srvpgm or bnddir.
+
+How to read a file in CL pgm,
+RCVF command , DCLF to delcare file
+DCLF FILE(FILE)
+SNDRCVF  DEV(*FILE) RCDFMT(CONF01)
+
+How to call a module which returns a variable from CL?
+CallPRC with RTNVAL
+
+How to read a file in CL Pgm in loop
+DCFL F_name
+Loop: Rcvf 
+Monmsg Msgid(CPF0864) Exec(goto Cmdlbl(END))
+GOTO CMDLBL(loop)
+End: ENDPGM
+
+19) What is the use of Join logical file(JFILE)
+Suppose if we want to read two files which has one or more common fields in program, two files can be combined , instead of read opn, only one read opn can be used, only one record format, Jrn cannot be used
+R  JFRCDFMT           JFILE( F1 F2)
+J                     Join (F1 F2)
+                      JFLD( F1.Field F2.Field)
+   Mamanu             JREF(1) -------- if this field exists in both files
+K  Mamanu                     ------------ key should be frm primary file
+A          R RJLF1                     JFILE(PF1 PF2)       
+A          J                           JOIN(PF1 PF2)         
+A                                      JFLD(ROLLNO ROLLNO)   
+A            ROLLNO                    JREF(PF1)             
+A            STUNAME                                         
+A            CLASS   
+
+20)why we have field reference file in as400?
+One field reference can be created and it can be used for all other files by referring instead of defening seperately
+A                   Ref(Fname)
+A       Field1  R   Reffld( Fname.field Fname)
+
+21)why we are getting level check error and explain few scenarios,
+
+re-compiling pfs and calling rpg used without re-compiling, if pgm has four files inorder to check whcih file is causing issue use DSPPGMREF of the rpg program to check the format level indentifer with the files.
+
+Signature violation error:
+If we are changing the modules in service program and call the program which uses the service program it will throw signature violation error
+
+22) what is the use of multi record format  file
+combine more than one pf record format,single definition, read
+
+23) use of ALWNULL keyword
+ALWNULL can be used in PF field definition to allow null values to that field and handle it via RPG
+If we want to have null values in field , we can use ALWNULL keyword in PF for that field and we have give Alwnull in H-spec for reading the file having null values and use %nullind(field) to check if it has null values.
+
+A   field         Alwnull ---- in Pf ile
+**
+H Alwnull(*usrctl)
+Read file
+if %nullind(Field) = *on;
+  Handle null;
+Endif;
+
+24) What is the use of OPNQRYF command and uses.
+OPNQRF is used to select particular records from PF , before calling rpgle, Creates temperory access path way in which file is read in Rpgle or cl. If we are using Opqry we have to issue OVRDBF with sharred Open data path yes , since OPNQRYF will open the file , if we call the rpg again it will open in new data path and changes of opnqryf will not reflect.
+OVRDBF     FILE(STUDPF) TOFILE(PRASK7771/STUDPF) +       
+                               SHARE(*YES)               
+OPNQRYF    FILE((STUDPF)) OPTION(*ALL) QRYSLT('STD_NO > +
+             30')                           OPNID(ID1)   
+
+CALL       PGM(TODFRPG)    
+DLTOVR     FILE(STUDPF)    
+CLOF       OPNID(ID1)      
+
+******* thing to check OPNQRYF , cant we use setll or chain?	
+
+25) Chain indicators, Read Indicators
+Chain(KEY1:KEY2) RCDFMt in freeformat, When record is not found turns on High indicator, Turns on Low on Error
+Setll, turns on EQ indicator when exact record is found, high when greater value found, Low on error
+Read turns on EQ indicator  eod of the file reached
+
+26) how to check active sessions in a system
+WRKACTJOB(QINTER), take it into a outfile and check the sessions
+
+27) How to check list of LF's attached to PF
+DSPDBR command will show list of LF's
+
+28) Difference between CHAIN and READE
+Chain does a combination of setll and reade, it can be best used for reading only one record in database with matching criteria.
+Chain will read only matching record
+setll and reade can be given outside loop and inside loop Reade can be used for reading multiple records with same matching criteria.
+Setll will place cursor on greater key value match if the exact match is not found
+Chain will switch on High indicator if no record found, Lo on error, we can also use %found after chain statement
+Reade will swithc on Eq indicator if no recor found and end of the file reached, lo on error
+Setll will switch on eq if the exact match found, high on greater value found, lo on error
+
+29) Not authorised to file error in Job
+We need to check the authority using WRKJOB of PF, if the user calling the job has no authority to change or use the file we can change and issue retry
+
+30)All Record Formats for externally-described file ABCD ignored or dropped due to error; file ignored -- when this will occur,
+
+When file has same name as rcdfmt rpg program wont allow to compile, to overcome this we can use rename keyword.Ex(flat file will have rcdfmt,filename)
+
+31) what is the use of ITER command?
+
+If we use Iter command inside Do--enddo command if ITer command reaches program gives the control to endo, skips the portion inbetween ITER and End-do, it acts like leave, leaves the loop iter goes to enddo and starts with next iteration.
+
+32) Difference between Rename and prefix
+Rename- used to change the record format name in the file
+Prefix- used to prefix some value with the fields in the file
+
+33) If two logical files of same PF is used in PF, we have to PREFIX or RENAME
+We have prefix keyword as fields will be same for both the logical files
+
+34) If the file will be created dynamically by using CPYFRMQRYF or OVRDBF and to be used in RPG program? how to declare in F-spec ?
+one way is we can create the file in qtemp and compile the rpg program.
+or we can give EXTDESC('File') which will have same structure as File going to be created
+
+33) how to select duplicate records in file using sql
+we can select * from file and group by of all the fields and having count(*) > 1
+
+using above sql we can use exists in delete statement and remove all the duplicate records.
+
+Insert the initial select statment for keeping only one set of record
+
+34) what is equal buit-in function used for?
+EQual can be used along with Setll and Lookup funtion
+--if the key specified in setll command is found we can issue Equal and proceed with the code
+--if the search element in array using lookup is found, we can issue equal and check
+
+35) What is use of OVRDTA and OVRATA Keyword
+OVRDTA-can be used to override existing data contents of field or record already on display
+In DSPF for Output or both field , if we want to assign default value to a field OVRDTA is needed.
+A           PUTOVR
+A   Fld 20 B OVRDTA
+A            DFT('Value')s
+OVRATA-can be used to override existing display attributes 
+
+36) what is procedure prototype and procedure interface
+Procedure Prototype": we define name of the procedure
+Procedure interface: We define all the parameters, returing values of the procedure
+
+37) what makes the procudure globally available,
+Decalring with Export Keyword
+
+38) how to avoid using Indicators in ILE
+We can use inbuilt functions like %found,%EOF.
+By use of indicator data struvture
+
+39) Explain the keywords EDTCDE and EDTWRD
+EDTCDE is used in output capble numeric fields to format values of numberic with date o currency format.
+
+A Salary     7 2             2 10(EDTCDE(K $)
+
+EDTWRD is similar to EDTCDE
+
+40) Overlay keyword
+If we are using three screens header, footer we can issue overlay with main screen to display all three in single time 
+
+41) What is referential integerity
+Referential integrity is essential for maintaining data accuracy and preventing data anomalies in relational databases. It helps guarantee that relationships between data in different tables are consistent and reliable, ensuring data integrity and quality.
+Primary Key (PK):
+
+A primary key is a unique identifier for a record in a database table.
+It ensures that each record in the table is unique.
+Primary keys are defined on one or more columns of a table.
+
+42) How to write data to mulit-member file,suppose there are 10 members we have to write data to 5th and 6th member
+Use two ovrdbf to have filenames one with File(5th) and file(6th), use these two filenames with extdesc(filename), use rename keyword and prefix keyword to change the fields,recordfmt
+
+We can use EXTFILE(filename), extmbr(membername) in F spec 
+02  FTESTFILEM5O    E             DISK    extdesc('TESTFILE'
+    F                                       extfile('TESTFILE')
+    F                                       extmbr('MBR05')
+    F                                       rename(TESTFILER:MBR05R)
+    F                                       prefix(m5_)
+03  FTESTFILEM6O    E             DISK    extdesc('TESTFILE')
+    F                                       extfile('TESTFILE')
+    F                                       extmbr('MBR06')
+    F                                       rename(TESTFILER:MBR06R)
+    F                                       prefix(m6_)
+
+43)can we use logical and PF of same file in a program?
+Yes, we have to use prefix keyword to change the field names
+
+44) how to retreive data from LDA
+we can define it as datastructre with dtaara(*LDA) and use in LDA to read, out LDA. out LDA updates the lda if we changed the field value
+LDA is job specific
+
+45) how to write into a file in CL
+We can use RUNSQL and inside insert into file sql statement
+
+46) what is the difference between CFnn and CAnn indicator
+
+CAnn-(Command attention) is used to exit or cancel and go back to previous where dont want any data from dspf
+CFnn-(Command Function) is used to update , validate where we want data entered in DSPF
+
+47) What is the difference between EXTPGM and EXTPROC
+Extpgm,extproc are both used in ile pgms, Extpgm is used to call external program it cannot return a parameter so we have to declare last parameter for getting output. extproc is used to call subf from other service pgms,binding directory, extproc is used in prototype if the subp name is changed, else we can define the same name of subp in prototype it can return value so we define next to name to subp in prototype.
+
+48) what is the use of *nopass and *omit:
+*nopass if we want to keep the last 1 or 2 paramters to call subp optional.
+*omit if we want to omit the 2nd paramter while passing value to 3rd parameter *omit is used. Incase of using *omit in between, we can't check if the parameter has value or not by giving parmeter = 0 or blanks as it will give("Pointer not set for location referenced"), so we have to use
+%addr(para) = *null to check if it has value or not.
+Incase of *nopass, we can use %Parms to check how many parameters has values.
+
+49) why to give Option(*varsize) in Procedure
+If we want to pass 10 characters in 100 characters defined filed we have give *varsize
+
+50) how to delay the program, how to make it wait
+We can use DLJOB command- which is used delay for certain number of seconds
+ILE pgm can use c funciton , sleep which delay for certain number of seconds, ulseep which delay for micro seconds
+
+51) how to pass Array or datastructure into ILE program from other
+We can create a *entry( PR and PI with main sub-routine(EXTPGM  of the same program) - Refer PARRDSILE and use subp from calling pgm to call this Ile(refer PARRDSILE2)
+
+52) differnece between RPG3 and RPG4-- Eval opcode is not present in RPG3
+
+53) what is options(*Varsize) paramter passing in ILE
+If we want to pass 5 character variable to procedure in which paramter is defined as 10 character, we can use Options(*VARSIZE) against the Parameter in PR, PI. It allow to pass 5 character variable
+
+54) what is Program signature violation error?
+Suppose if we update srvpgm by adding a subp or removing one from any of its module, signature gets changed, Pgm using this srvpgm will get this error.
+
+55) what is PR and PI?
+PR-- Procedure prototype is definition of PI, can define external program, can use to define subp from same pgm,subp from other pgm
+
+56) what is the use of SET commit Options = *none
+
+57) what is SQLCODE for sucess sql run, when 100 will come
+Code =0, when the sql statement is success, code=100 is no record found , code=other values on error in sql statement
+
+58)What is process to use cursor
+Declare c1 cursor for statement
+open C1
+fetch from c1 into :ds
+dow sqlcode = 0;
+fetch next from c1 into :ds
+enddo;
+
+59)What is execute immediate, Prepare & execute and difference between them ?
+
+sqlquery = 'select,,,, where field = ?';
+Prepare P1 from :sqlquery;
+execute p1 using :hv;
+or
+sqlquery = 'select...from ' + %trim(file) + 'where,,,';
+prepare p1 from :sqlquery;
+execute p1;
+execute immediate: SQL variable host variables can be used only in where condition
+sqlquery = 'select//...';
+exeute imediat :sqlquery
+
+Prepare&execute:
+
+how to read content from ifs file in rpgle?
+
+sqlquery = 'select cast(line as char(32740)) as line from table(qsys2.ifs_read(/ifs/stream/path)';
+
+prepare p1 from :sqlquery
+
+declare c1 cursor for p1;
+
+open c1;
+
+fetch from c1 into :row
+dow sqlcode = 0;
+fetch from c1 into :row
+enddo;
+
+60) what is the use of chgpf, wen to use chgpf or recompile all the pgms, if we do chgpf what will happen to new fields in the file
+to add a field at the end we can use CHGPF, if want to increase a size of field or add a field in between we have to recompile the file and pgm
+if we do chgpf old values will remain, new fields will have default values null value for date field, 0 for decimail, blanks for charc
+61) what is the use of re-org?
+inorder to use delete records space in the file we are doing re-org
+
+62) steps to create subsystem
+create subsystem desc
+create jobq
+addjobq entry to sbsd
+create class
+add entry of class to sbsd
+start sys
+
+63) what is cursor in sqlrpgle
+cursor is temp result area which contains row data ,
+scroll use in cursor== if we use scroll in cursor, we can access last record in fetch operation, previous or after the current record
+
+64) how to create DTaara, add values and retrieve values from Dtaara
+
+CRTDTAARA--create
+CRTDTAARA DTAARA(DEVPRA/TSTDTARA) TYPE(*CHAR) LEN(200)
+Addvalues--Chgdtaara
+RTVDTAARA-- read the values
+RTVDTAARA  DTAARA(DEVPRA/TSTDTARA (1 40)) RTNVAR(&VAR1)
+
+65) how to specifically stop a program in the loop at debug, suppose when i =100, program should stop how to do it?
+"BREAK 6 when I =110", break keyword 6 is the line number at which cursor should stop , When is keyword , I is variable 110 is value
+
+66) what is watch variable in Debug and how it is used?
+" Watch I" , watch is keyword and I is variable
+pgm will stop whenever I is changed
+
+67) what is the difference between Zoned decimal and packed decimal?
+It is how value is stored in Variable. Packed decimal occupies less space
+
+Zoned decimal 1 digit = 8 bit = 1 byte , 4 bit for + or - , 4 bit for actual value for all digits
+Packed decimal 1 digit = 4bit - or + 4 bit for value only for last digit , remaining digits can hold two digits in 1 byte.
+Thus 5 S 0 (zoned decimal) uses 5 bytes
+5 P 0(packed decimal) uses 3 bytes only.
+
+68) how to pass decimal value in parameter from CL Program?
+If the field in RPGLE is simple Decimal without S or P, we can pass using Decimal variable
+If its Zoned 'S', we can pass from character field
+for packed We have to pass character value and convert to numeric or use hexa values X'012F' for 12.
+
+69) how to concat two variables " char" + "Dec" in CL?
+
+char and char
+chgvar var(&fval) value(&val1 *tcat &val2)
+
+char and dec
+chgvar var(&cval) value(&dval)
+chgvar var(&fval) value(&val1 *tcat &Cval)
+
+70)How to display a DSPF and write the records from PF using CL
+We can use SNDRCVF to display the dspf
+
+
+70.a)can we use DSPF in CL
+Yes DSPF can be used in CL
+
+72)how to use binder language in CL PGM
+
+73)how to check the status of job using CL pgm
+
+74)what is View and index
+View is used to create a LF file
+Index is used to change the key fields in a file by creating the index from a file
+
+79) how to get the pgm name inside the program
+By using PSDS
+D srcmbr                324    333 
+D pgmproc               334    343 
+D modproc               344    353 
+We can program from PGMPROC in psds
+
+77)what are subfile keywords manadatory ones?
+SLF,SFLCTL,SFLDSP,SLFPAG,SFLSIZ
+SFLDSP
+SFLDSPCL
+SFLCLR
+SLFEND
+SFLCSRRN(&CSRRRN)
+CSRRRN  4S 0H
+csrrn will have current top record in subfile
+SFLRCDNBR(CURSOR *TOP)
+RCDNBR   4S 0H
+rcdnbr will be used when enter is pressed in a page rcdnbr = csrrrn will have the same page or it will go the first page
+in fspec of subfile   sfile(sfldata : RRN#)
+
+
+
+78) how to display empty sub-file
+If there are no records , switch off SLFDSP indicator and exfmt to display empty subfile
+or use SFLINZ indicator
+
+80) how to use specific member of multi-member file in RPG?
+We can use ovrdbf to file with specific member in cl and call rpg.
+or 
+Use Extmbr(membername) in Rpg to read the specific member in RPG
+
+71)how to SNDF, SNDUSRF commands
+75)when will session or device error will occur
+Below are the situations which can lead to session or device error:
+
+·         Incorrect record number in subfile SFLRCDNBR or SFLSIZ field.
+
+·         In program code, at display (EXFMT) subfile code,  check the value of RRN. If is zero and you are making on the SFLDSP indicator *ON or it is un-conditional and doing display subfile. Then it will give you the same error.         
+
+·         Trying to show empty subfile.
+
+·         Field and position in Display file DDS is not correct.
+
+·         The keywords are not properly handled or organized in Display file DDS. suppose mandatory indicator is not turned ON.
+
+·         Trying to write more than 9999 record on the Display file for Load All subfile i.e.
+
+/DATE(TIMESTAMP_FORMAT(DIGITS(PRAPDT),'YYMMDD')) /// PRAPDT =200520--- Convert numeric to date format
+
+//Union - return results of both select statements 
+//Intersect - return result of common between select statements
+//except- return distinct from first select statement
+
+qn) how to get tomorrow date in RPGLe ?
+date = %date() + %days(1);              
+
+qn) how to Convert lowercase to upper case in rpgle?
+inp_value = %XLate (L_case : UP_case : inp_value);
+
+what is the diff between %xlate and %scnrpl
+
+%xlate('ABC':'abc':ACB); == it will convert each alue A to a , B to b , C to C
+%scnrpl('ABC''abc':ABC); == it will scan whole ABC and convert it to abc
+
+*********************************************
+1) what is difference between mentioning *Inlr = *on in first line or last line of the code?
+
+2) How to use Scrollable cursor?
+Declar c1 scroll cursor for select statement
+fext next from c1 , fetch relative + 5 from c1 , before
+we can read set of records in loop using scroll
+
+Declare c1 scroll cursor for select statement
+fetch before from c1 == will move the cursor to first record
+fetch next from c1 for 10 rows into :Ds == to read 10 records at a time
+fetch relative - 10 from c1 to go back 10 records
+
+3) What is *nocheck in Procedure?
+
+4) can we use binding directory in CL program
+yes we have to compile cl as module and give bnddir directory while crtpgm
+
+5) What is binder language and use of it?
+	mylib/qsrvsrv
+STRPGMEXP pgmlvl(*current) lvlchk(*no)
+export symbol(ggn_p1)
+ENDPGMEXP
+
+ CRTSRVPGM  SRVPGM(MYLIB/ggn)
+            MODULE(ggn_p1)
+            EXPORT(*SRCFILE)
+            SRCFILE(MYLIB/QSRVSRC)
+            SRCMBR(*SRVPGM)
+for using binder langaue
+https://www.ibm.com/docs/en/i/7.2?topic=concepts-binder-language
+
+6) What is accesspath and ODP path?
+
+7) what is commitment control?
+Commitment control is commit and rollback, controlling the file updates and addition.
+
+8) Field is alphanumeric and it has only numeric values how to sort the values in the file
+order by Dec(field)
+
+9) can we update record in join logical file?
+No we cannot update records in join logical file.
+
+10) What is QGPL?
+
+11) Qtemp is job specific or session specific? why to use qtemp?
+job specific and session sepecfic
+
+12) what is multi-format logical file and its uses?
+
+13) How to read or write the files from or to IFS?
+Using Api 'open' , 'read' , 'wrie'
+qsys2.ifs_read and qsys2.ifs_write
+
+14) how to read physical file which is having no keyfields?
+setll *start file;
+reade file;
+
+15) how to read the recods in descending order without using setgt?
+we can use opnqry of file with key *Descend to read the file in reverse in callig rpg
+
+16) How to get the record count of ile from different server using FTP?
+
+17) How to read/change the dtaara values in RPGLE
+D Dtarads    UDS     dtaara(*LDA)
+
+dcls-s dtara char(9) dtaara(dataareaname);
+in *lock dtara;
+dtara = value;
+out Dtarads;
+18) how to file field name for coding without declaring in F-spec
+Externally described datastructure.
+D Fileds     DS      Extname(fname)
+
+19) What is error handling in CL? command level and program level handling.
+We can use MONMSG(CPF****) Exec( Goto cmdlbl(end)) to handle errors. If we mention in the first line of the code after declaration it is program level any error in pgm will get executed. If we mention monmsg after specific command line it is command level.
+
+20) what is the difference between CPF0000 and CPF9999?
+
+If we mention CPF0000 it will handle all the errors starting from CPF000 to other program level, os level like MCH***
+
+if we mention CPF9999 it will not handle file level errors from CPF0000 to cpf9998 and other errors after CPF9999
+
+21) how to copy records from flat file to physical file?
+CPYFrmimpf , CPYF
+
+22) In case of multi-member file , we need to read from specific file dynamically , we will know the member name dynamically how to read in rpgle?
+we can use OVRDBF to that member based on condition in CL and call the rpg program to read that member
+
+23) We have to write a program which will be called both interactive and batch? if its batch one action , interactive other set of action need to be performed, how to do it in RPG program.
+
+We can use Api procedure"QUSRJOBi" extproc and retreive whether program is called interactive or using batch job.
+01  **free
+
+02  dcl-pr QUSRJOBI extpgm ;
+03    *n char(32766) options(*varsize) ;
+04    *n int(10:0) const ;
+05    *n char(8) const ;
+06    *n char(26) const ;
+07    *n char(16) const ;
+08  end-pr ;
+
+09  dcl-ds Returned len(86) ;
+10    JobType char(1) pos(61) ;
+11  end-ds ;
+
+12  QUSRJOBI(Returned:%size(Returned):'JOBI0100':'*':'') ;
+13  dump(a) ;
+jobtype = I or B
+14  *inlr = *on ;
+using sql
+
+01  **free
+02  ctl-opt option(*srcstmt) ;
+                          
+03  dcl-s JobType char(3) ;
+                       
+04  exec sql SELECT V_ACTIVE_JOB_TYPE
+                      INTO :JobType
+               FROM TABLE(QSYS2.GET_JOB_INFO('*')) ;
+                                                
+05  if (JobType = 'INT') ;
+06    dsply ('Job type = ' + JobType) ;
+07  else ;
+08    dump(a) ;
+09  endif ;
+
+we rtvjoba
+
+24) How to read all records from all members in multi-member file?
+OVRDBF member(*All) or Extmbr(*ALL)
+
+25) How to use *Entry PLIST in rpgle program?
+We can use extpgm(pg-name) in PR and PI and parms will be received.
+
+26) what is the use of %Elem bif?
+Returns number of array elements in a array or array ds
+
+27) can we use lookup in array ds if yes how?
+Yes we can , %lookup(var : Ds(*).field)
+
+28) What is the use of %len , %size , %trim
+
+trim is used to remove blanks trailing or leading ... %trim( string : '0') -- removes zereos
+len is used to get the lenght of the character , %len(%trim(char)) is used to get lenght of occupied charcs in variable
+size is used to get the byte occupied by the value in variable
+
+29) what is the use of SFLRCDNBR , SFLCSRRRN in subfile?
+
+30) There is one PF without any constraint and LF created with unique constraint, what happens if we add duplicate record key to PF?
+It will give attemp to write duplicate record as assciated lf has unique constraint
+
+31) can we used DSPFFD , DSPFD over DSPF?
+Yes we can use DSPFFD to check reffld file fields used in DSPF
+
+32) A file is created as single member file , can we add member to it now without affecting records?
+yes we can used using chgpf to change member option to number of members or *nomax and use ADDPFM to add the member.
+
+33) Pgm is formed by combining three modules and one module is deleted in production what is going to happen to pgm.
+Pgm will run normally, module is not needed after crtpgm command as its bind by copy.
+
+34) what is bind by copy , bind by reference?
+if create using crtpgm with module its bind by copy , deleting module will not affect the pgm.
+if create using crtpgm with service program its bind by reference, deleting srvpgm will result in pgm abend.
+
+35) if we use opnqryf in cl , can we read the same records in cl?
+yes we can read using rcvf , we must use ovrdbf(*yes) to share the ODP path
+
+36) How to debug the batch job?
+Hold the jobq,
+submit the job
+hold the job
+release the jobq
+strsrvjob, strdbg and give f12
+release the job.
+give f10 and give dspmodsrc to set breakpoints and f12 to comeback
+now enter to start the debug.
+
+37) how to achieive position to in load all subfile , single page subfile.
+in load all subfile we can load RRN , keyfield value into array ds and lookup the position to value in array . assign the rrn value of the found record to sflrcdnbr
+
+in single page subfile, clear the subfile. setll Postion file and load the subfile
+
+38) How to write into file using CL?
+We can use RUNSQL and use Insert into statement to add a record , there is no equivalent of write opcodein CL.
+
+39) What is data area and types of data area , what is the use of data area in real time?
+*dec, *char,*LGL 
+40) Different types of array , what is pre-compile time array?
+
+41) In load all subfile if more than 9999 records how to write a logic to display error message
+
+42) When to use Data area , When to use Dtaq for communicating between programs?
+
+43) What is synchronous and Asynchronous Communication?
+
+44) How to move objects between servers (test and production)?
+Crtsavf and use FTP. Sendnetf
+45) What are the ways error can be handled in RPGLE?
+Monitor
+on-error
+--handle error
+endmon
+Begsr *pssr
+	--handle error
+call(e) pgm
+if %error	
+	-- hanlde error
+
+46) what is CHain(N) for?
+Chain(N) will not lock the record
+
+47) can we delete records from file which having no key fields?
+Yes we can delete
+48) There are 1000 records in a file, i want to read records of ID's from 400 to 1000?
+SQLRPLE, Oqnqryf
+49) How to check source member of the rpgle object?
+DSPPGM 
+50)17.	I subfile I have window where when I take prompt another program is called but here when I take the prompt my back ground first screen in vanishing how can we mitigate this issue
+
+51) How to set a pointer to a particular record in Clle similar to setll of rpgle?
+
+52) how to use CL commands in RPGLE program?
+by using QCMDEXC
+
+53) What is record lock , when it occurs and how to mitigate it?
+
+54) How to get the largest emp id , if the key is emp id in rpg without using sqlrpgle
+Setgt key file
+55) what if we use ovrdbf from 5 field file to 7 field file
+it will work
+56)what will happen if we do chain(n) of record and try to update it?
+it will wont update
+
+57) can we use sub-routines CL if yes how?
+CALLSUBR subr(Suba)
+SUBR Subr(suba)
+Endsubr
+
+58) file has five members , how to check if the members as data or not
+SELECT SYSTEM_TABLE_SCHEMA,SYSTEM_TABLE_NAME,+
+15               SYSTEM_TABLE_MEMBER +
+16       FROM QSYS2.SYSPARTITIONSTAT +
+17       WHERE SYSTEM_TABLE_SCHEMA = ''MYLIB'' +
+18       AND SYSTEM_TABLE_NAME = ''TESTFILE'' +
+19       AND NUMBER_ROWS > 0 +
+20       ORDER BY CREATE_TIMESTAMP)
+
+60) how to read the records from file in loop in CL
+01         PGM
+02
+03         DCLF   FILE(QTEMP/WRKFILE) OPNID(A)
+04
+05  LOOP:  RCVF   OPNID(A)
+06         MONMSG MSGID(CPF0000) EXEC(GOTO CMDLBL(ENDLOOP))
+07
+08         IF     COND(&A_STATUS *NE 'A') +
+09                   THEN(GOTO CMDLBL(LOOP))
+10
+11  ENDLOOP:
+12
+13         ENDPGM
+			(or)
+010         PGM
+02
+03         DCL     VAR(&LOOP) TYPE(*LGL) VALUE('1')
+04         DCLF    FILE(QTEMP/WRKFILE) OPNID(A)
+05
+06         DOWHILE COND(&LOOP)
+07            RCVF OPNID(A)
+08            MONMSG MSGID(CPF0864) EXEC(LEAVE)
+09
+10            IF COND(&A_STATUS *NE 'A') THEN(ITERATE)
+11
+12
+13         ENDDO
+14
+15         ENDPGM
+
+--- I have a program using two modules , one of the module is deleted will the program run now?
+	Yes , If we have created program using entry module and binded the other two modules bind by copy and crtpgm
+	if we have used the module bind by reference i,e. SRVPGM or BNDDIR it will fail.
+	
+=====================
+
+1) What is the cursor and what is the use of cursor?
+
+2) how to connect to other system from one system to other system?
+
+3) Subfile and multimember file , IFS files.
+
+4) why procedure why not program
+
+5) how to find in which place cursor is in , suppose you want to write a prompt function for a dspf field , we have many fields how to find to which field prompt is needed?
+
+RTNCSRLOC
+https://www.rpgpgm.com/2021/09/finding-which-display-file-field-and.html
+
+6) how to read and write external prtf in rpgle?
+
+7) suppose if there is a PF and it has 30 lF's and used in 100 pgm's , we want to add a new field in PF  and use it in programs do we need to remcompile lf's and pgm?
+
+8) how to use dspf in cl?
+
+9) if there are 10 records in Subfile , if the the cursor is in 4th rcord how to know in rpgle?
+
+10) use of opnqryf and ovrdbf
+
+11) trigger programs, commitment control journaling , refferential integerity
+
+12)stored procedure 
+
+13) we want to read the record and know if the record is locked or not how to do?
+chain will establish exclusive chain(e) and if %error can be used
+Chain(e) field file;
+if %error and %status(file) = 01218;
+	// file is locked
+endif
+or we can do use like below
+if %status(file) <> 01218;
+
+14) how to find the job is running interactive or batcch in cl and rpgle?
+RTVJOBA , QUSRJOBI, 
+RTVJOBA    TYPE(&JOBTYPE) // if 0 = batch , 1 = interactive
+QUSRJOBI API in RPGLE 
+exec sql SELECT V_ACTIVE_JOB_TYPE
+                      INTO :JobType
+               FROM TABLE(QSYS2.GET_JOB_INFO('*')) ; jobtype = 'INT' 
+
+15) how to send data using FtP from CL?
+http://www.texas400.com/b400tip8.html
+FTPIN
+have input commands in one txt file , user name and password and commands 
+in CL
+OVRDBF     FILE(INPUT) TOFILE(FTPIN)
+OVRDBF     FILE(OUTPUT) TOFILE(FTPOUT)
+FTP '123.12.12.123'
+
+FTPOUT will have output of ftp commands when running
+
+16) what is compile time array and how to declare and use it?
+options    S    1A dim(1) ctdata perrcd(1)
+
+** Options
+Y
+==
+17) how to set conditional breakpints and watch variable?
+  Break linenumber when I=10, pgm stops in debug when I=10
+  Watch I , pgm stops when I is read or changed
+  Variable:C 4000 , to see in debug if the variable size is more
+
+18) How to check total number of records in CL?
+by using RTVMBRD and nbrcurrcd
+
+EVAL operation 
+
+2) How to convert lower case to upper case?
+using %XLATE opcode
+
+3) how O spec is used?
+Report design , Insert records in a file
+
+4) Wat is keyword Varying ?
+If we want to pass character which is less than defined into procedure we have to varying in definition
+
+5) How to check if record is locked in RPGLE?
+*status INFSD, 01218
+
+6) how to execute CL command in RPGLE?
+QCMDEXC , SYSTEM C API
+
+7) How to use PF and LF of same file RPGLE?
+We need to use Rename keyword to change recordformat and Prefix keyword to change the field of LF and use both lf and pf
+
+8) hw to retreive RRN value of file?
+By using INFds datastructure
+
+9) Wat is CALLB used? to call a module
+
+*****************************************************************************************************************
+ILE Concepts
+Prototype - PR , Procedure Interface( Program Entry) - PI
+PR should be declared in calling program , PI 
+PR :
+DADDPR            PR             5S 0   --------------5S 0 indicates it returns Decimal value of 5S 0  
+D                                3S 0   ------------- CONST , VALUE , *NOPASS , *OMIT  
+D                                3S 0     
+
+PI:
+DADDPR            PI             5S 0     
+D                                3S 0     
+D                                3S 0     
+
+CONST -- allows actually value to be passed to sub-proc without variables , also the passing parameter cannot be changed in SUbproc
+Value -- It passes value as pass by value , there by if parameter is changed in sub-proc it doesnt reflect in calling program
+*nopass , *Omit -- *nopass can be used for parameters at the end to skip any parameter at the end , *omit is used for middle parameters
+%addr(para) is null to be checked if the parameter has value or not.
+
+Binder Language:
+Binder language tells which are subprocedures are exported in module or service program. 
+
+Activation group:
+ILE doesnt run in default activation group, dftactgroup(*NO) for ILE program. it can run in also named activation group to save time and resource can be reused if the program is called number of times.
+
+BInder Directory:
+Binder language is like directory which can have different service program and all the modules which are exported under service program can be used just binding the program with binder directory
+
+qn)When Pointer not set for location referenced will occur how to avoid it?
+When we use *nopass , *omit calling program can call the sub-proc with one or two less parameter , if we try to access the value of parameter which is not passed we get the error , to avoid it we %addr(para) is null and assign some default value to it
+
+**
+qn) What is signature violation error and how to avoid it?
+When we bind a program with service program and if service program is changed using Updsrvpgm , signature of the srvprogram is changed and it causes signature violation error
+when it is called by the program using service program. It can be avoided by using binder language.   
+Using Binder language we can control which modules need to be exported , if any new module is exported newly  if we use updsrvpgm using binder language. Service program holds the old signature so the old program can be executed without need to be compiled again       
+
+
+1) Wat is the use logical file?
+Logical file doenst occupy space , it's just views the pf it is used to change the key , select and omit records of a field
+
+2) Select and OMIT
+
+O DWDPTC                    COMP(EQ ' ') 
+S CLOLSC                    COMP(EQ 'SHS')
+3) Join logical file
+4) reference file
+
+5) Wat is FIFO and LIFO
+
+6) Wat is DYNSLT
+DYNSLT: Use this file-level keyword to indicate that the selection and omission tests specified in the file (using select/omit specifications) are done at processing time. This keyword specifies dynamic select/omit rather than access path select/omit.
+
+    Only a Physical file contains data. Logical files just contain pointers for processing the data in a specific sequence and/or subset of data.     
+When a record is added/changed/deleted in a physical file, the system has to put a lock on it and then go out to check and update any logical files before it can release the lock. While the amount of time to do this is hardly measurable, it can be significant if massive batch updates are done to a file.            
+If you are using the Select/Omit option in your DDS and using DYNSLT, the above process does not need to be done at record update time.         
+Where this is beneficial is when your selection process includes almost all the records in the file. Now when you process using DYNSLT, it will read all the records in the file, but do the selection of which records to process at that time rather than having done all the maintenance ahead of time
+
+What is the Difference between access path and Dynamic select?
+Ans: Dynamic select occurs whenever the program reads file. But access path occurs before the file is read (but  not necessarily).
+
+How to use join logical file?
+JFile( F1 F2)
+Join(F1 F2)
+Jfld( F1.F f2.f)
+
+7) What is access path in AS400?
+Ans:
+
+Access path
+
+ü  Access path describes the order in which records are to be read.
+
+ü  Access paths can be kept on the system permanently (such as physical or logical file) or temporarily.
+
+ü  OPNQRYF command may create a temporary access path for use one time, and then discard the access path.
+
+8) Overlay
+
+9)We have a pf wihtout unique and lf with unique const, what happens if we add duplicate into pf
+
+we want to check if the file has specific condtion example country name and then submit the job how to do in CL?
+
+what are the error handling in cl, what is CPF9999?
+
+what are the error handling in rpgle?
+
+  can we add members to pf using CHGPF command?
+
+If we do opnqryf and use the data in same cl using rcvf do we need ovrdbf ?
+Yes we need 
+
+PGM
+DCL VAR(&LOOP) TYPE(*LGL) VALUE('1')
+DCLF FILE(TESTFILE)
+OVRDBF FILE(TESTFILE) SHARE(*YES)
+OPNQRYF FILE((TESTFILE)) +
+          QRYSLT('F2 >= 3') +
+         KEYFLD((F2 *ASCEND))
+DOWHILE COND(&LOOP)
+RCVF
+MONMSG MSGID(CPF0864) EXEC(LEAVE)
+SNDMSG MSG('F2 = ' || &F2) TOUSR(*REQUESTER)
+ENDDO
+CLOF OPNID(TESTFILE)
+ENDPGM
+
+1) Reverse the string in RPGLE
+2) How to store indivual chars in a array from string
+3) how to read certain dept student in student database using RPGlE
+4) Embeded SQL steps to read the file
+5) Things to make sure while using insert, updte statement in exec sql
+6) If the PF is created with unique constraint and LF is not unique what happens if we add duplicate record
+7) How to use select/omit in LF
+8) How to delete duplicate records using SQL
+9) whats the difference between Setll, reade and chain
+10) how to perform chain without lock
+11) What are the steps to handle MSGW
+12) What are the uses of Jounaling ? COmmit and rolbk and other use?
+13) What is record format
+14) How to read 3rd member of a file using rpgle alone
+15) how to convert lo case to up case
+16) how to check the element in a array present or not
+17) how to find a particular part of char in a long string and move it to other variable
