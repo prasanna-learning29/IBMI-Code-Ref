@@ -12,14 +12,46 @@ Load all subfile:
 Pageup, pagedown is handled by system
 9999 records can be loaded, all the records will be loaded first itself
 SFLPag(no of records in page) should be atleast one less than SFLSIZ(total no of records)
-SFLDSP,SFLDSPCTL, SFLEND(should be used for same indicator-50), SFLCLR(N50)
+SFLDSP,SFLDSPCTL, SFLEND(), SFLCLR()
 Two records(SFLCTL- control portion(static), SFL- SFLdata( it holds records))
 We need to initialize--SFLILE(SFLDATA:RRN#), RRN# is variable of 4s 0 to handle the enter keyword
-Clear subfile(switch on SFLCLR indicator),write sflctl
-Load subfile(write the subfile- Write SFLDATA
-Display (EXFMT- SFLCTL)
-CF03 , CA03 needs to handled at SFLCTL
+in dspf
+sflsiz(9999)
+sflpag(9)
+INDARA // to use indicator datastructure
+SFLCSRRRN(&csrrrn)  to get csrrn
+sflrcdnbr(&RCDNBR)  to set rcdnbr wen enter is pressed
+//
+Clearsfl();
+Loadsfl();
+dsplysfl();
 
+Clearsfl:
+sfldsp = *OFF;
+sfldspctl = *OFF;
+sflclr = *ON;
+write sflctl;
+sflclr = *oFF;
+sfldspctl = *ON;
+
+Loadsfl
+dow %eof(PF);
+rrn += 1;
+write sfldata;
+Enddo;
+if rrn > 1;
+  sfldsp = *ON;
+else;
+  sfldsp = *OFF; // to show empty subfile
+Endif;
+
+dsplysfl:
+dow ind_Exit = *OFF and ind_cancel = *OFF;
+ exfmt sflctl;
+ if csrrrn > 0;
+  rcdnbr = csrrrn;
+endif;
+enddo;
 SFLRCDNBR(CURSOR) we declare in DDS with (RCDNbR)this will give cursor position.
 We can use this RCDNBR along INFDS( file datastructure and take the min-rcd) and assign it to RCDNBR to keep the screen as its when enter is pressed.
 
@@ -30,7 +62,6 @@ CFnn-- We can cf08,CF10 to update ,validate if we use CF contents from DSPF will
 EDTCDE- Is used to seperate commas, insert / in dates also to EDTCDE(4) to display empty subfile numeric field without zeros.
 SFLINZ- Is used to display empty sfile,
 SFLDSP,SFLDSPCTL,sflend(*MORE) should switched on, SFLCLR should be swited Off -- LOAD
-SFLINZ, or write sfldata in write
 ===================================================================================================================================
 Single page subfile:
 only one page is loaded at a time, page up , page down should be handled in program by giving indicators for page up, page down
@@ -44,11 +75,109 @@ Pagedown:
 Read the next record, inrement the RRN till subfile size
 Pageup:
 we have to use readp for sfl size times to bring the cursor back to 10 records and read and write
+
+sflsiz(10)
+sflpag(10)
+pageup(50)
+pagedown(51)
+indara
+sfldsp
+sfldspctl
+sflclr
+sflend
+
+//
+Clearsfl();
+Loadsfl();
+dsplysfl();
+
+Clearsfl:
+sfldsp = *OFF;
+sfldspctl = *OFF;
+sflclr = *ON;
+write sflctl;
+sflclr = *oFF;
+sfldspctl = *ON;
+
+Loadsfl();
+for RRN = 1 to sflsize;
+  read key file;
+  if %eof();
+   sflend = *On;
+  leave;
+  endif;
+  write sfldata;
+endfor;
+if RRN > 1;
+  sfldsp = *on;
+else;
+  sfldsp = *OFF;
+endif;
+if not %eof();
+read key file;
+setll key file;
+endif;
+//
+pagedown
+clearsfl();
+Loadsfl();
+pageup
+clearsfl();
+for rrn = 1 to sflsize;
+  readp file;
+endfor;
+setll key file;
+loadsfl();
+
 ===================================================================================================================================
 Expandable/growing subfile
 SFLSIZE should be greateer than sflpage
 pageup is handled by system itself as the buffer is keep on increasing
 only pagedown should be hanldled
+
+INDARA // to use indicator datastructure
+SFLCSRRRN(&csrrrn)  to get csrrn
+sflrcdnbr(&RCDNBR)  to set rcdnbr wen enter is pressed
+Padedown(50)
+//
+Clearsfl();
+Loadsfl();
+dsplysfl();
+
+Clearsfl:
+sfldsp = *OFF;
+sfldspctl = *OFF;
+sflclr = *ON;
+write sflctl;
+sflclr = *oFF;
+sfldspctl = *ON;
+
+Loadsfl
+dcl-c sflsize const(8); //sflpage size
+read file;
+dow %eof(PF) or count <= sflsize;
+rrn += 1;
+write sfldata;
+read file;
+Enddo;
+L-key = key1;
+if rrn > 1;
+  sfldsp = *ON;
+else;
+  sfldsp = *OFF; // to show empty subfile
+Endif;
+
+pagedown
+setll l_key file;
+loadsfl();
+
+dsplysfl:
+dow ind_Exit = *OFF and ind_cancel = *OFF;
+ exfmt sflctl;
+ if csrrrn > 0;
+  rcdnbr = csrrrn;
+endif;
+enddo;
 
 ********************
 SFLSIZ, SFLPAG
@@ -82,10 +211,21 @@ if we try to load empty subfile --- i.e., without writing the data subfile.
 
 if we try to load subfile with incorrect SFLRCDNBR (SFLRCDNBR variable = 0).
 
+
 5) what is the use of sFLNXTCHg
 If there are three records 2 records in subfile changed , if in validation second record needs changes if user changes second record only the second record will be read first record will not be read for this we have to use slfnxtchg indicator, if turn sflnxtchg indicator and update the subfile data position and issue readc same record will be read again.
- Readc;
- *IN80 = *on;
+ Readc sfldata;
+ dow not %eof();
+ sflnxtchg = *ON;
   Update sfldata;
+  readc sfldta;
+ enddo;
+//
+after validation
+readc sfldata
+dow not %eof();
+sflnxtchg = *OFF;
+ update sfldata;
+enddo;
 
 -- Wen we issue readc again same record will read , if we dont use slfnxtchg indicator it wont be read
