@@ -22,3 +22,7 @@ options(*nopass:*omit)
 dcl-pr proc1 char(8);
  parm1 char(5) value; //pass by value sends a copy , value wont change in calling program
 end-pr;
+//use of const
+dcl-pr proc1;
+    parm1 varchar(1000) const; // value passed as constant value proc1(actualvalue), also variable of char(100) or varchar(100) can be passed.
+end-pr;
