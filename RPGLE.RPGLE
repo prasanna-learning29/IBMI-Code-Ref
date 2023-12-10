@@ -32,3 +32,6 @@ SETLL (Search Arguments/Key Fields) FILENAME ;
 IF %FOUND(FILENAME) ;
 // Required Program Logic
 ENDIF ;
+//Reading xml file in rpgle
+xml-into Person %xml('/SAMPLE/test.xml':
+                         'case=any doc=file') ; // person is datastructure with subfields as xml elements
