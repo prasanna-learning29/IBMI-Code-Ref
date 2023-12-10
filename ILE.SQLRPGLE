@@ -18,6 +18,14 @@ end-proc;
 Options(*Varsize) // to pass char(5) to parm having char(10)
 Options(*omit)     // to use proce(parm1:*omit);
 options(*nopass:*omit)
+//using Options(*nopass)
+    //parameter can be ignored i.e., Proc1(parm1) or Proc1();
+    //when %parms() = 0 no parameter passed
+    //Nopass must be used with last set of parameters if there are 3 , if we want 2 parameters to be nopass last 2 must be nopass
+//using options(*omit)
+    //we have specify *omit while calling proc i.e, Proc1(Parm1) or proc1(*omit)
+    //we can make first parameter also as *omit
+    //if %addr(parm1) <> *null then parameter is passed
 //pass by value
 dcl-pr proc1 char(8);
  parm1 char(5) value; //pass by value sends a copy , value wont change in calling program

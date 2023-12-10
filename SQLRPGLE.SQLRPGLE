@@ -85,3 +85,37 @@ exec sql open c1;
 exec sql fetch scroll-option from C1 into :ds
 //Fetch Scroll-option from C into :ds
 //--Scroll- options : Next, First, Last, prior, before(places cursor before first row),after(places cursor after last row),current, Relative +5 , Relative +var ,n-var
+
+//To write data to ifs using qsys2/ifs_write
+
+CALL QSYS2/IFS_WRITE
+     (PATH_NAME => 'IFS Path with directory and File Name', //'Home/user/Filename.txt'
+      LINE => 'Data to be written',							//'Hello_world'
+      FILE_CCSID => CCSID(Integer),							//ccisd 
+      OVERWRITE => 'Overwrite Option',						//Append or Replace or None
+      END_OF_LINE => 'End of Line Option')					//attach CRLF, LF,CR to end of record
+
+//To read data from ifs using Qsys2.ifs_read
+dcl-s line Char(32740) inz;
+dcl-s filecontent char(3240) inz;
+Query = 'Select cast(line as char(32740)) as line from table(qsys2.Ifs_read('/home/user/file.txt'))';
+// Line will present as pointer so we are using cast function to convert it to character
+prepare p1 from :query;
+Declare C1 for P1;
+open c1;
+fetch next from c1 into :line;
+dow sqlcode = 0;
+	filecontent = %trim(filecontent) + ' ' + %trim(line);
+	fetch next from c1 into :line;
+enddo;
+close c;
+this will have LF/CR/null to remove
+filecontent = %xlate(X'00250D'F:'   ':fileconent);
+
+//To check if the ifs object is present in Path
+select count(1) into :indicator
+	from table(IFS_OBJECT_STATISTICS(START_PATH_NAME = '/home/user/file.txt'));
+// we can use these to list of objects present in ifs directory as well.
+
+//to call cl commands
+call qsys2/qcmdexC('createfile');

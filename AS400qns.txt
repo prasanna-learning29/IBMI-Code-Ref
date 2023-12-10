@@ -154,6 +154,14 @@ Endif;
 
 24) What is the use of OPNQRYF command and uses.
 OPNQRF is used to select particular records from PF , before calling rpgle, Creates temperory access path way in which file is read in Rpgle or cl. If we are using Opqry we have to issue OVRDBF with sharred Open data path yes , since OPNQRYF will open the file , if we call the rpg again it will open in new data path and changes of opnqryf will not reflect.
+
+OPNQRYF can be used to do the below database functions.
+Join Records from multiple files (or members).
+Calculate new field values.
+Calculate Aggregate Functions (Minimum, Average, etc...)
+Select Subset of records.
+Sort records by Key fields.
+
 OVRDBF     FILE(STUDPF) TOFILE(PRASK7771/STUDPF) +       
                                SHARE(*YES)               
 OPNQRYF    FILE((STUDPF)) OPTION(*ALL) QRYSLT('STD_NO > +
@@ -420,6 +428,8 @@ We can use SNDRCVF to display the dspf
 
 70.a)can we use DSPF in CL
 Yes DSPF can be used in CL
+DCLF FILE(TESTDSPF)
+SNDRCVF RCDFMT(SCREEN1)
 
 72)how to use binder language in CL PGM
 
@@ -801,8 +811,44 @@ https://www.rpgpgm.com/2021/09/finding-which-display-file-field-and.html
 9) if there are 10 records in Subfile , if the the cursor is in 4th rcord how to know in rpgle?
 
 10) use of opnqryf and ovrdbf
+Ovrdbf : to point to a file from particular file , if the file is present in two libraries
+        to use the file with a different name
+        to access specific member of file incase of multimember file
+        to set a pointer to particular position in file
 
 11) trigger programs, commitment control journaling , refferential integerity
+journaling:
+How to Start Journaling:
+
+1.      Use the Create Journal Receiver (CRTJRNRCV) command to create a journal receiver.
+
+The journal receiver is where the journal entries are actually recorded. The journal "connects" the receiver to the file.
+
+Also, you should put journal receivers in the same library as the file.
+
+2.      Create a journal. Use the Create Journal (CRTJRN) command to create a journal and specify the receiver created in step 1.
+
+Although you can journal multiple files to the same journal, you will generally want to have a journal "serving" a single file.
+
+3.      Start journaling the file. This is done by using the Start Journal Physical File (STRJRNPF) command.
+
+This is how you associate a file to a journal. Once the association is made, the system will record in the journal receiver a copy of any record added, updated or deleted from the file.
+
+Other activity, such as when the file is opened and closed, can also be recorded in the journal receiver if you choose by selecting the appropriate options on the STRJRNPF command.
+
+Retrieve Data from Journal:
+
+You would get a scenario where records were deleted wrongly or update happened wrongly, You would need to retrieve the data back.
+
+Below are the steps to be followed in order to retrieve data from Journal.
+
+1.     Issue DSPJRN Command by specifying Journal Name & Journalled Physical File Name.
+
+You might want to consider giving specific Journal Receiver Name. By default it would be current Receiver.
+
+2.    Create a Copy of Physical File to include Journal Fields along with Original Physical File Fields.
+
+3.    Use CPYF Command with FMTOPT(*NOCHK) from DSPJRN Outfile to JR file with Journal fields.
 
 12)stored procedure 
 
@@ -847,6 +893,10 @@ Y
 
 18) How to check total number of records in CL?
 by using RTVMBRD and nbrcurrcd
+
+RTVMBRD  FILE(&LIB/MYFILE)  MBR(&MBR *NEXT)
+  RTNMBR(&MBR)  CRTDATE(&CRTDATE)  TEXT(&TEXT)
+  NBRCURRCD(&NBRRCD)  DTASPCSIZ(&SIZE)
 
 EVAL operation 
 
@@ -959,6 +1009,11 @@ we want to check if the file has specific condtion example country name and then
 what are the error handling in cl, what is CPF9999?
 
 what are the error handling in rpgle?
+Monitor 
+on-error
+endmon
+using err extendor call(e) , chain(e) , read(e) if %error
+begsr *pssr
 
   can we add members to pf using CHGPF command?
 
@@ -988,6 +1043,36 @@ ENDPGM
 6) If the PF is created with unique constraint and LF is not unique what happens if we add duplicate record
 7) How to use select/omit in LF
 8) How to delete duplicate records using SQL
+ DELETE FROM TESTFILE A
+   WHERE RRN(A) > (SELECT MIN(RRN(B))
+    FROM TESTFILE B
+   WHERE A.F00 = B.F00
+     AND A.F01 = B.F01
+     AND A.F02 = B.F02
+     AND A.F03 = B.F03
+     AND A.F04 = B.F04
+     AND A.F05 = B.F05
+     AND A.F06 = B.F06
+     AND A.F07 = B.F07
+     AND A.F08 = B.F08
+     AND A.F09 = B.F09
+using traditional RPG
+
+  CRTDUPOBJ OBJ(TESTFILE) FROMLIB(MYLIB) OBJTYPE(*FILE)
+             NEWOBJ(TESTFILE2) CST(*NO) TRG(*NO)
+  INSERT INTO TESTFILE2 (SELECT DISTINCT * FROM TESTFILE)
+
+8) how to read records in pf which is having no keyfields
+setll *start pf;
+read pf;
+dow not %eof();
+read pf;
+enddo;
+
+9) how to use file fields for coding in sqlrpgle without using f-spec?
+by declaring it as datastructure
+dcl-ds filename Extname('file') qualified inz end-ds;
+
 9) whats the difference between Setll, reade and chain
 10) how to perform chain without lock
 11) What are the steps to handle MSGW
