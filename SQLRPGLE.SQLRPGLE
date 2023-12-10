@@ -119,3 +119,33 @@ select count(1) into :indicator
 
 //to call cl commands
 call qsys2/qcmdexC('createfile');
+
+//convert splf to pdf in ifs using sql
+
+VALUES SYSTOOLS.GENERATE_PDF('9999999/QUSER/MYJOBNAME','QSYSPRT',9,
+                             '/home/SIMON/file.pdf') ;
+//data queues in sql
+DATA_QUEUE_INFO
+CLEAR_DATA_QUEUE
+SEND_DATA_QUEUE
+RECEIVE_DATA_QUEUE table function
+//
+
+SELECT CURRENT_MESSAGES
+  FROM QSYS2.DATA_QUEUE_INFO
+ WHERE DATA_QUEUE_LIBRARY = 'MYLIB'
+   AND DATA_QUEUE_NAME = 'TESTDTAQ' // to check current-messages in DATA_QUEUE_INFO
+//
+exec sql CALL QSYS2.CLEAR_DATA_QUEUE('TESTDTAQ','MYLIB') ;
+exec sql CALL QSYS2.SEND_DATA_QUEUE(:Snd.QData,
+                                          'TESTDTAQ',
+                                          'MYLIB') ; //snd.qdata is char
+//
+ exec sql SELECT MESSAGE_DATA INTO :Rcved.Data
+                 FROM TABLE(QSYS2.RECEIVE_DATA_QUEUE(
+                            DATA_QUEUE => 'TESTDTAQ',
+                            DATA_QUEUE_LIBRARY => 'MYLIB',
+                            REMOVE => 'YES',
+                            WAIT_TIME => 5)) ; //rcved.data is char 
+//Search strings in sql
+LOCATE_IN_STRING(search_variable,'K') // returns the first position where K is present in search_variable
