@@ -86,6 +86,9 @@ exec sql fetch scroll-option from C1 into :ds
 //Fetch Scroll-option from C into :ds
 //--Scroll- options : Next, First, Last, prior, before(places cursor before first row),after(places cursor after last row),current, Relative +5 , Relative +var ,n-var
 
+//Using sensitive cursor will include added records aswell as updated records after the cursor is delcared and opened. Normal static cursor will not include latest changes
+Declare c1 sensitive dynamic scroll cursor for 
+	select stmt;
 //To write data to ifs using qsys2/ifs_write
 
 CALL QSYS2/IFS_WRITE
@@ -148,4 +151,10 @@ exec sql CALL QSYS2.SEND_DATA_QUEUE(:Snd.QData,
                             REMOVE => 'YES',
                             WAIT_TIME => 5)) ; //rcved.data is char 
 //Search strings in sql
-LOCATE_IN_STRING(search_variable,'K') // returns the first position where K is present in search_variable
+LOCATE_IN_STRING(search_variable,'K',1) // returns the first position where K is present in search_variable
+Select from table Offset 10 rows; // skips first 10 records in the result set
+select from table fetch first 1 rows only; // fetches 1 row only
+Colesce(field,0) //returns field if not null else returns 0
+Cast(field as Decimal(5,0)) //converts field to decimal data type
+case when field = 'ABC' then 'Char' else 'Num' end // sample case statement
+Alter table set column not null as default//
