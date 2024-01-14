@@ -1069,6 +1069,14 @@ dow not %eof();
 read pf;
 enddo;
 
+10) how to check if the member exists in CL program before adding a member in a PF using CL?
+
+   CPYSPLF    FILE(QPQUPRFIL) TOFILE(*TOSTMF) +
+               SPLNBR(*LAST) +
+               TOSTMF('/MyFolder/test_1.pdf') WSCST(*PDF) +
+               STMFOPT(*REPLACE)
+11) how to convert Spool file to PDF in program and send as a mail?
+
 9) how to use file fields for coding in sqlrpgle without using f-spec?
 by declaring it as datastructure
 dcl-ds filename Extname('file') qualified inz end-ds;
