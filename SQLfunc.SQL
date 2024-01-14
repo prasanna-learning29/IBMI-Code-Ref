@@ -6,3 +6,4 @@ Colesce(field,0) //returns field if not null else returns 0
 Cast(field as Decimal(5,0)) //converts field to decimal data type
 case when field = 'ABC' then 'Char' else 'Num' end // sample case statement
 Alter table set column not null as default//
+ADD_DAYS(CURRENT_DATE, 1) // add days to date field
