@@ -902,6 +902,18 @@ RTVMBRD  FILE(&LIB/MYFILE)  MBR(&MBR *NEXT)
 
 EVAL operation 
 
+19) How to findout if the file has records or not by without issuing Read , not use Setll or SQL?
+by using RTVMBRD in CL
+by using file information data structure
+DCL-F myfile keyed usage(*input) infds(fds);
+DCL-DS fds
+NUM_RCDS INT(10) POS(156);
+End-DS;
+If Num_RCDS > 0;
+//File has records
+Endif;
+
+
 2) How to convert lower case to upper case?
 using %XLATE opcode
 
