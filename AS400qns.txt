@@ -856,10 +856,12 @@ You might want to consider giving specific Journal Receiver Name. By default it 
 chain will establish exclusive chain(e) and if %error can be used
 Chain(e) field file;
 if %error and %status(file) = 01218;
-	// file is locked
+	// record is locked
 endif
+using file information datastructure , using *status it returns 1218 when record is locke
 or we can do use like below
 if %status(file) <> 01218;
+
 
 14) how to find the job is running interactive or batcch in cl and rpgle?
 RTVJOBA , QUSRJOBI, 
