@@ -229,3 +229,5 @@ sflnxtchg = *OFF;
 enddo;
 
 -- Wen we issue readc again same record will read , if we dont use slfnxtchg indicator it wont be read
+how to detect which field is taken F4?
+By using RTNCSRLOC, it will return recordformat and record value.
