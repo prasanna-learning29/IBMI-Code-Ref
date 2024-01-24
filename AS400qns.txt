@@ -1052,10 +1052,11 @@ ENDPGM
 1) Reverse the string in RPGLE
 2) How to store indivual chars in a array from string
 3) how to read certain dept student in student database using RPGlE
-4) Embeded SQL steps to read the file
 5) Things to make sure while using insert, updte statement in exec sql
 6) If the PF is created with unique constraint and LF is not unique what happens if we add duplicate record
+It will not allow to insert
 7) How to use select/omit in LF
+DYNSLT and use select and omit condition.
 8) How to delete duplicate records using SQL
  DELETE FROM TESTFILE A
    WHERE RRN(A) > (SELECT MIN(RRN(B))
@@ -1084,6 +1085,8 @@ read pf;
 enddo;
 
 10) how to check if the member exists in CL program before adding a member in a PF using CL?
+CHKOBJ OBJ(lib/file) OBJTYPE(*FILE) MBR(member)
+Use check obj and MonMSG(cpf9815) to check if member exists or not.
 
 11) write a query to find second largest salary of employee in a table?
 select max(salary) as SecondHighestSalary from employee
@@ -1098,12 +1101,29 @@ select max(salary) as SecondHighestSalary from employee
 by declaring it as datastructure
 dcl-ds filename Extname('file') qualified inz end-ds;
 
-9) whats the difference between Setll, reade and chain
 10) how to perform chain without lock
-11) What are the steps to handle MSGW
+Chain(n) (key1:key2) file;
+
 12) What are the uses of Jounaling ? COmmit and rolbk and other use?
-13) What is record format
 14) How to read 3rd member of a file using rpgle alone
+ FTESTFILEM5O    E             DISK    extdesc('TESTFILE'
+    F                                       extfile('TESTFILE')
+    F                                       extmbr('MBR05')
+    F                                       rename(TESTFILER:MBR05R)
+    F                                       prefix(m5_)
 15) how to convert lo case to up case
+use %Xlate(locase:upcase:variable);
 16) how to check the element in a array present or not
+%Lookup(var:array);
 17) how to find a particular part of char in a long string and move it to other variable
+
+18) can we fetch mutliple rows using static cursor?
+
+19) how to get which field prompt was used in a subfile?
+   Use RTNCSRLOC and CSRRRN. RTNCSRLOC will return rcdfmt and field name, CSRRRN will return the RRN# the cursor is present with both we can find which field prompt is taken.
+
+20)how to check if the particular record is there or not without using Read
+   use file information datastruture it will have num_rcds in 156th position.
+   use rtvmbrd and nbrrcruds value to variable in cl
+
+
