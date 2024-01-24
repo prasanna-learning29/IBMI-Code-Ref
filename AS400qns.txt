@@ -1124,6 +1124,8 @@ use %Xlate(locase:upcase:variable);
 
 20)how to check if the particular record is there or not without using Read
    use file information datastruture it will have num_rcds in 156th position.
-   use rtvmbrd and nbrrcruds value to variable in cl
+   use rtvmbrd and nbrrcruds value to variable in cl.
+
+21)
 
 
