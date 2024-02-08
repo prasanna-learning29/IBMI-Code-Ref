@@ -72,3 +72,8 @@ Dcmp_array        S              3S 0 DIM(9)  ctdata perrcd(2)
 102103             
 
 Here perrcd means for one record two values 123 will be in cmp_array(1) and 456 will be in cmp_array(2)
+
+//HOW to copy values from one array to another array effectively?
+Arr = %subarr(arr1:1:100);
+//how to find duplicate values in file using arrays?
+
