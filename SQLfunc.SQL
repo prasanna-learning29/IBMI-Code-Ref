@@ -7,3 +7,4 @@ Cast(field as Decimal(5,0)) //converts field to decimal data type
 case when field = 'ABC' then 'Char' else 'Num' end // sample case statement
 Alter table set column not null as default//
 ADD_DAYS(CURRENT_DATE, 1) // add days to date field
+Translate(String,'^','0123456789') // converts numbers to ^
