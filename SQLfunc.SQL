@@ -8,3 +8,4 @@ case when field = 'ABC' then 'Char' else 'Num' end // sample case statement
 Alter table set column not null as default//
 ADD_DAYS(CURRENT_DATE, 1) // add days to date field
 Translate(String,'^','0123456789') // converts numbers to ^
+Listagg(Name,',') // makes name from rows into single string using group by
