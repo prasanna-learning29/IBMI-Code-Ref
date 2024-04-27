@@ -70,14 +70,6 @@ In expanding sub-file, only one page is loaded at a time. when pagedown is press
 Jobd has information about which jobq job is submitted, initial library list
 Jobq tells under which subsystem, maximum jobs allowed to run
 
-12) What is activation group, how to declare it for Program and advantages of using *CALLER, *GEN, Named activation group
-Activation group is used to allocate resource for the program, if the program is going to called multiple times inside a job we can use named activation group to reduce the time or *caller if the calling program has named activation group. *new will create a activation group every time and it will lead to increase in program time.*caller will be used if the previous program has used opnqryf , ovrdbf to get those changes.
-==Activation group will handle file opens , file overrides, opens sql cursors, define variables allocating storage space for the function to run.
-In case of normal OPM program file handle, override, storage will handled by program i.e, it will be started when the program starts and ends when program ends, but in case ILE program running Dftactgrp(*No) its will remain active even after the program is ended as the activation group handles it.
--->Actgrp(*new) - Activation group will be created when the program runs and ends with it.
--->Actgrp(*Caller) - Program runs activation group of program calling it
--->Actgrp(named) - Activation group will persist even after program ends, it will ended only with RCLACTGRP
-
 13) how to use Chain in Free-format
 Chain (key1: Key2) rcdfmt, It will turn on High incdicator if no record found
 
@@ -526,20 +518,6 @@ fetch relative - 10 from c1 to go back 10 records
 
 4) can we use binding directory in CL program
 yes we have to compile cl as module and give bnddir directory while crtpgm
-
-5) What is binder language and use of it?
-	mylib/qsrvsrv
-STRPGMEXP pgmlvl(*current) lvlchk(*no)
-export symbol(ggn_p1)
-ENDPGMEXP
-
- CRTSRVPGM  SRVPGM(MYLIB/ggn)
-            MODULE(ggn_p1)
-            EXPORT(*SRCFILE)
-            SRCFILE(MYLIB/QSRVSRC)
-            SRCMBR(*SRVPGM)
-for using binder langaue
-https://www.ibm.com/docs/en/i/7.2?topic=concepts-binder-language
 
 6) What is accesspath and ODP path?
 
@@ -1133,5 +1111,52 @@ use %Xlate(locase:upcase:variable);
 =====================================================================================================================================
 ILE Questions:
 
+1) What is activation group, how to declare it for Program and advantages of using *CALLER, *GEN, Named activation group
+Activation group is used to allocate resource for the program, if the program is going to called multiple times inside a job we can use named activation group to reduce the time or *caller if the calling program has named activation group. *new will create a activation group every time and it will lead to increase in program time.*caller will be used if the previous program has used opnqryf , ovrdbf to get those changes.
+==Activation group will handle file opens , file overrides, opens sql cursors, define variables allocating storage space for the function to run.
+In case of normal OPM program file handle, override, storage will handled by program i.e, it will be started when the program starts and ends when program ends, but in case ILE program running Dftactgrp(*No) its will remain active even after the program is ended as the activation group handles it.
+-->Actgrp(*new) - Activation group will be created when the program runs and ends with it.
+-->Actgrp(*Caller) - Program runs activation group of program calling it
+-->Actgrp(named) - Activation group will persist even after program ends, it will ended only with RCLACTGRP
 
+2) What is binder language and use of it?
+Binder language holds the list of export procedures from that service program , its source is binded with srvpgm when using crtsrvpgm command
+if a procedure has export keyword but not listed in binder language it will not be visible outside service program , i,e. this procedure can be visible For
+other modules inside the service program but not outside pgm using this srvpgm.
 
+Pgmlvl(*current) -- indicates this list is latest list of export procedures in the srvpgm
+pgmlvl(*prv) -- indicates this list is old one and previous old pgms which do not need new procedure can use this signature and run.
+if the vinder language has three *prv and one *current , service program will have 4 signatures.
+
+In crtsrvpgm command it has export parm , we have to *srcfile to use binder language , QSRVSRC and src member type BND.
+if export *all is mentioned in crtsrvpgm all the modules with export will be visible outside srvpgm
+
+	mylib/qsrvsrv
+STRPGMEXP pgmlvl(*current) lvlchk(*no)
+export symbol(ggn_p1)
+ENDPGMEXP
+
+ CRTSRVPGM  SRVPGM(MYLIB/ggn)
+            MODULE(ggn_p1)
+            EXPORT(*SRCFILE)
+            SRCFILE(MYLIB/QSRVSRC)
+            SRCMBR(*SRVPGM)
+for using binder langaue
+https://www.ibm.com/docs/en/i/7.2?topic=concepts-binder-language
+
+3) Adding a new parameter to Existing ILE procedure , do we need to recompile old programs?
+No becuase signature validates service programs only at the program level and not at the procedure level. So if the new adding parameter is variable in nature
+old programs can run with old parameter call only.
+
+4) what is binding directory?
+Binding directory allows to create a list of service program to bound to calling program and mention the bidnding directory in H-spec and simple compile it has
+ILE program.
+
+5) how to make program variables visible in other program?
+Declare variable with Export keyword and use the same activation group.
+
+6) what is bind by copy and bind by reference?
+When two modules and binded and program is created using CRTPGM it uses bind by copy method. i.e, it creates copy of the module so the pgm will work even 
+if the original module is deleted after issuing crtpgm command.
+when ILE program binds using srvpgm it uses bind by reference method. it access the module from service pgm when its called so when the module is deleted
+program will fail when its uses bind by reference.
