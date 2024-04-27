@@ -237,7 +237,7 @@ Procedure Prototype": we define name of the procedure
 Procedure interface: We define all the parameters, returing values of the procedure
 
 37) what makes the procudure globally available,
-Decalring with Export Keyword
+Decalring with Export Keyword and have the programs in same activation group. it can be achieved only in ILE pgms
 
 38) how to avoid using Indicators in ILE
 We can use inbuilt functions like %found,%EOF.
@@ -256,10 +256,10 @@ If we are using three screens header, footer we can issue overlay with main scre
 41) What is referential integerity
 Referential integrity is essential for maintaining data accuracy and preventing data anomalies in relational databases. It helps guarantee that relationships between data in different tables are consistent and reliable, ensuring data integrity and quality.
 Primary Key (PK):
-
 A primary key is a unique identifier for a record in a database table.
+A foreign key is present in dependant table which refers to primary key in parent table.
 It ensures that each record in the table is unique.
-Primary keys are defined on one or more columns of a table.
+when the dependant table is inserted,updated or deleted it checks the parent table by foreign key frm this table and allows the operation only if the matching records are found.
 
 42) How to write data to mulit-member file,suppose there are 10 members we have to write data to 5th and 6th member
 Use two ovrdbf to have filenames one with File(5th) and file(6th), use these two filenames with extdesc(filename), use rename keyword and prefix keyword to change the fields,recordfmt
