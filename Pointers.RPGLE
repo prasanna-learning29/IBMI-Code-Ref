@@ -13,6 +13,6 @@ Dealloc(NE) pointer@;
 dcl-ds DS2 likeds(TemplateDS) based(pi_pointer@);
 
 //DS2 is taken from Pgm a from DS1
-
-
-
+dcl-ds Test1 qualified dim(*auto:1000);
+   Fld1 Char(100);
+end-ds;
